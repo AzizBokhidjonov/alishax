@@ -1,0 +1,583 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Dizayn tizimi ta'rifi.
+ *
+ * Brend ranglari va shrifti "Alishax Kids Logo Book" dan olingan va
+ * o'zgartirilmaydi:
+ *   amber #FAB504 · navy #211964 · sky #66CFEC · coral #F7485D
+ *   shrift: Montserrat (Regular / SemiBold)
+ *
+ * Bu to'rt rang faqat FON va BEZAK sifatida ishlatiladi — ular ochiq
+ * bo'lgani uchun ochiq fonda matn rangi bo'la olmaydi. Matn uchun har
+ * birining to'qroq varianti bor: `brand-ink`, `sky-ink`, `berry-ink`.
+ * Ular sahifa foni ustida kamida 4.5:1 kontrast beradi (WCAG AA).
+ *
+ * `@theme inline` bloki CSS o'zgaruvchilarini Tailwind utilitalariga
+ * bog'laydi (masalan --color-primary -> bg-primary, text-primary).
+ * Qiymatlar :root (yorug') va .dark (qorong'i) bloklarida, faqat oklch da.
+ *
+ * Yangi semantik rang qo'shish:
+ * 1. :root va .dark ga o'zgaruvchini qo'shing
+ * 2. @theme inline da --color-<nom>: var(--<nom>) deb ro'yxatdan o'tkazing
+ */
+
+/*
+ * Montserrat yuklanguncha ishlatiladigan tizim shrifti uning o'lchamlariga
+ * moslanadi.
+ *
+ * Ilgari zaxira shrift Montserratdan ~7% tor edi: shrift almashgan zahoti
+ * jadval kengayib konteynerdan chiqib ketardi va gorizontal skroll paydo
+ * bo'lib, ostidagi hamma narsani pastga suradi — keyin joyiga qaytadi.
+ * `size-adjust` bilan ikkala holatda matn kengligi deyarli bir xil bo'ladi,
+ * shuning uchun almashuv tartibni qimirlatmaydi.
+ *
+ * `ascent/descent` ham berilgan — aks holda qator balandligi almashuvda
+ * o'zgarib, vertikal siljish qolardi.
+ *
+ * Qiymatlar o'lchov bilan olingan: bir xil matn Montserratda va tizim
+ * shriftida chizilib, kengliklari solishtirildi. Nisbat qalinlikka qarab
+ * farq qiladi (oddiy ~1.134, qalin ~1.164), shuning uchun ikkita yuz
+ * ta'riflangan. Ascent va descent — Montserratning ko'rsatkichlari
+ * (1000 birlikdan 968 va 251), `size-adjust` ga bo'lingan.
+ */
+@font-face {
+  font-family: "Montserrat Fallback";
+  font-weight: 100 500;
+  src: local("Segoe UI"), local("Arial"), local("Helvetica Neue"), local("Liberation Sans");
+  size-adjust: 113.4%;
+  ascent-override: 85.4%;
+  descent-override: 22.1%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Montserrat Fallback";
+  font-weight: 500 900;
+  src: local("Segoe UI"), local("Arial"), local("Helvetica Neue"), local("Liberation Sans");
+  size-adjust: 116.4%;
+  ascent-override: 83.2%;
+  descent-override: 21.6%;
+  line-gap-override: 0%;
+}
+
+@theme {
+  /* Brend shrifti — Montserrat. Google Fonts orqali __root.tsx da yuklanadi. */
+  --font-sans:
+    "Montserrat", "Montserrat Fallback", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --font-display: var(--font-sans);
+  --default-font-family: var(--font-sans);
+
+  /*
+   * Matn shkalasi. Montserrat geometrik va keng shrift: katta o'lchamlarda
+   * standart qator oralig'i bo'sh ko'rinadi, shuning uchun sarlavhalarda
+   * qator oralig'i va harflar oralig'i qisqartirilgan. Kichik o'lchamlar
+   * (xs/sm/base) jadval qatorlari balandligini o'zgartirmaslik uchun
+   * hozirgi qiymatlarga yaqin qoldirilgan.
+   */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.43;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.45;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.4;
+  --text-xl--letter-spacing: -0.01em;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 1.25;
+  --text-2xl--letter-spacing: -0.015em;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 1.2;
+  --text-3xl--letter-spacing: -0.02em;
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 1.15;
+  --text-4xl--letter-spacing: -0.022em;
+  --text-5xl: 3rem;
+  --text-5xl--line-height: 1.08;
+  --text-5xl--letter-spacing: -0.025em;
+  --text-6xl: 3.75rem;
+  --text-6xl--line-height: 1.05;
+  --text-6xl--letter-spacing: -0.028em;
+  --text-7xl: 4.5rem;
+  --text-7xl--line-height: 1;
+  --text-7xl--letter-spacing: -0.03em;
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@theme inline {
+  /* Brend ranglari — fon va bezak uchun */
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-soft: var(--brand-soft);
+  --color-sun: var(--sun);
+  --color-sun-foreground: var(--sun-foreground);
+  --color-sky: var(--sky);
+  --color-berry: var(--berry);
+
+  /* Kirish sahifasining navy paneli — ikkala rejimda ham bir xil */
+  --color-panel: var(--panel);
+  --color-panel-foreground: var(--panel-foreground);
+
+  /* Brend ranglarining matn uchun to'q variantlari (ochiq fonda >= 4.5:1) */
+  --color-brand-ink: var(--brand-ink);
+  --color-sky-ink: var(--sky-ink);
+  --color-berry-ink: var(--berry-ink);
+
+  /* Holat ranglari: davomat, hisob-faktura va ogohlantirishlar uchun */
+  --color-st-ok: var(--st-ok);
+  --color-st-ok-fg: var(--st-ok-fg);
+  --color-st-ok-soft: var(--st-ok-soft);
+  --color-st-ok-border: var(--st-ok-border);
+  --color-st-warn: var(--st-warn);
+  --color-st-warn-fg: var(--st-warn-fg);
+  --color-st-warn-soft: var(--st-warn-soft);
+  --color-st-warn-border: var(--st-warn-border);
+  --color-st-info: var(--st-info);
+  --color-st-info-fg: var(--st-info-fg);
+  --color-st-info-soft: var(--st-info-soft);
+  --color-st-info-border: var(--st-info-border);
+  --color-st-danger: var(--st-danger);
+  --color-st-danger-fg: var(--st-danger-fg);
+  --color-st-danger-soft: var(--st-danger-soft);
+  --color-st-danger-border: var(--st-danger-border);
+  --color-st-neutral: var(--st-neutral);
+  --color-st-neutral-fg: var(--st-neutral-fg);
+  --color-st-neutral-soft: var(--st-neutral-soft);
+  --color-st-neutral-border: var(--st-neutral-border);
+  --color-st-on: var(--st-on);
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+@keyframes blob {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(20px, -25px) scale(1.08);
+  }
+  66% {
+    transform: translate(-18px, 14px) scale(0.94);
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes wiggle {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes shine {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+/*
+ * Kirish sahifasi uchun harakatlar.
+ *
+ * `ken-burns` — chap paneldagi fotoning sekin yaqinlashuvi (foto bezak,
+ * matn uning ustidagi to'q qatlamda turadi).
+ * `draw-line` — «Bugungi kun» ustunidagi bog'lovchi chiziq yuqoridan pastga
+ * chiziladi; kun oqimini bildiradi.
+ * `pulse-ring` — joriy bosqich nuqtasi atrofidagi halqa.
+ * `shake` — kirish rad etilganda xato bloki bir marta tebranadi.
+ * `sweep` — yuborish tugmasidagi yorug'lik chizig'i (faqat kutish paytida).
+ */
+/*
+ * Ro'yxat va forma yuzalari uchun harakatlar.
+ *
+ * `shimmer` — yuklanish skeletidagi yorug'lik to'lqini: "kutilmoqda" ni
+ * oddiy pulsatsiyadan aniqroq bildiradi.
+ * `step-pop` — usta qadamining raqami faollashganda.
+ */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes step-pop {
+  0% {
+    transform: scale(0.7);
+  }
+  60% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes ken-burns {
+  0%,
+  100% {
+    transform: scale(1.05) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.16) translate3d(-1.5%, -2%, 0);
+  }
+}
+
+@keyframes draw-line {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes sweep {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(320%);
+  }
+}
+
+@utility reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@utility reveal-in {
+  opacity: 1;
+  transform: none;
+}
+
+:root {
+  --radius: 0.625rem;
+
+  /*
+   * BREND PALITRASI — Logo Book, "Фирменный цвет".
+   * Bu to'rt qiymat o'zgartirilmaydi.
+   *   amber  #FAB504   C0  M33  Y99 K0
+   *   navy   #211964   C98 M100 Y5  K24
+   *   sky    #66CFEC   C56 M0   Y9  K0
+   *   coral  #F7485D   C0  M86  Y57 K0
+   */
+  --brand: oklch(0.816 0.168 80.8);
+  --brand-foreground: oklch(0.281 0.125 279.4);
+  --sun: oklch(0.816 0.168 80.8);
+  --sun-foreground: oklch(0.281 0.125 279.4);
+  --sky: oklch(0.803 0.105 218.4);
+  --berry: oklch(0.658 0.21 18.6);
+
+  /*
+   * Kirish sahifasining chap paneli. Bu yuza rejimga qarab ag'darilmaydi:
+   * u har doim brend navysi, matni esa iliq oq. Shuning uchun qiymatlar
+   * `:root` va `.dark` da bir xil — panel ikkala rejimda bir ko'rinishda.
+   */
+  --panel: oklch(0.281 0.125 279.4);
+  --panel-foreground: oklch(0.994 0.008 91.5);
+
+  /* Brend ranglarining yumshoq foni va matn uchun to'q variantlari */
+  --brand-soft: oklch(0.958 0.038 80.8);
+  --brand-ink: oklch(0.541 0.111 80.8);
+  --sky-ink: oklch(0.524 0.093 218.4);
+  --berry-ink: oklch(0.556 0.21 18.6);
+
+  /*
+   * Holat ranglari. Har bir holat uchun to'rt qiymat:
+   *   -        to'liq fon (faol tugma, progress) — ustida `--st-on` matni
+   *   -fg      ochiq fon ustidagi matn
+   *   -soft    nishon (badge) foni
+   *   -border  nishon chegarasi
+   * Ohanglar brend palitrasiga bog'langan: warn -> amber, info -> sky,
+   * danger -> coral. `ok` uchun brendda yashil yo'q, shuning uchun neytral
+   * yashil olingan.
+   */
+  --st-on: oklch(1 0 0);
+  --st-ok: oklch(0.549 0.13 150);
+  --st-ok-fg: oklch(0.503 0.13 150);
+  --st-ok-soft: oklch(0.958 0.038 150);
+  --st-ok-border: oklch(0.857 0.07 150);
+  --st-warn: oklch(0.566 0.116 80.8);
+  --st-warn-fg: oklch(0.517 0.104 80.8);
+  --st-warn-soft: oklch(0.958 0.038 80.8);
+  --st-warn-border: oklch(0.862 0.07 80.8);
+  --st-info: oklch(0.555 0.1 218.4);
+  --st-info-fg: oklch(0.508 0.092 218.4);
+  --st-info-soft: oklch(0.958 0.038 218.4);
+  --st-info-border: oklch(0.857 0.07 218.4);
+  --st-danger: oklch(0.589 0.21 18.6);
+  --st-danger-fg: oklch(0.532 0.21 18.6);
+  --st-danger-soft: oklch(0.958 0.038 18.6);
+  --st-danger-border: oklch(0.858 0.07 18.6);
+  --st-neutral: oklch(0.564 0.02 279.4);
+  --st-neutral-fg: oklch(0.514 0.02 279.4);
+  --st-neutral-soft: oklch(0.958 0.02 279.4);
+  --st-neutral-border: oklch(0.861 0.02 279.4);
+
+  /* Iliq oq #FFFDF7 — brend amberi bilan uyg'un */
+  --background: oklch(0.994 0.008 91.5);
+  --foreground: oklch(0.281 0.125 279.4);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.281 0.125 279.4);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.281 0.125 279.4);
+  --primary: oklch(0.281 0.125 279.4);
+  --primary-foreground: oklch(0.994 0.008 91.5);
+  --secondary: oklch(0.965 0.02 88);
+  --secondary-foreground: oklch(0.281 0.125 279.4);
+  --muted: oklch(0.965 0.02 88);
+  --muted-foreground: oklch(0.526 0.03 279.4);
+  --accent: oklch(0.945 0.035 88);
+  --accent-foreground: oklch(0.281 0.125 279.4);
+  /* Brend korali emas — oq matn bilan 4.5:1 beradigan to'qroq variant */
+  --destructive: oklch(0.546 0.21 18.6);
+  --destructive-foreground: oklch(1 0 0);
+  /* Ajratgich chiziqlar: ko'rinadi, lekin og'ir emas */
+  --border: oklch(0.832 0.02 80.8);
+  /* Forma maydoni chegarasi: WCAG 1.4.11 bo'yicha kamida 3:1 */
+  --input: oklch(0.665 0.025 80.8);
+  /* Fokus halqasi: navy — ochiq fonda ham, amber tugmada ham ko'rinadi */
+  --ring: oklch(0.281 0.125 279.4);
+  --chart-1: oklch(0.816 0.168 80.8);
+  --chart-2: oklch(0.803 0.105 218.4);
+  --chart-3: oklch(0.281 0.125 279.4);
+  --chart-4: oklch(0.658 0.21 18.6);
+  --chart-5: oklch(0.62 0.13 279.4);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.281 0.125 279.4);
+  --sidebar-primary: oklch(0.281 0.125 279.4);
+  --sidebar-primary-foreground: oklch(0.994 0.008 91.5);
+  --sidebar-accent: oklch(0.965 0.02 88);
+  --sidebar-accent-foreground: oklch(0.281 0.125 279.4);
+  --sidebar-border: oklch(0.832 0.02 80.8);
+  --sidebar-ring: oklch(0.281 0.125 279.4);
+}
+
+.dark {
+  /*
+   * Qorong'i rejim ham brend navysiga asoslangan (avval shadcn ning
+   * standart ko'k-kulrang palitrasi edi — u brend bilan mos kelmasdi).
+   * Brend ranglari qorong'i fonda o'zgarmaydi: ular yetarlicha ochiq,
+   * shuning uchun bu yerda `-ink` variantlari brend ranglarining o'ziga
+   * teng.
+   */
+  /* Panel qorong'i rejimda ham o'zgarmaydi — `:root` dagi qiymatlar bilan bir xil. */
+  --panel: oklch(0.281 0.125 279.4);
+  --panel-foreground: oklch(0.994 0.008 91.5);
+
+  --brand-soft: oklch(0.315 0.06 80.8);
+  --brand-ink: oklch(0.816 0.168 80.8);
+  --sky-ink: oklch(0.803 0.105 218.4);
+  --berry-ink: oklch(0.72 0.16 18.6);
+
+  --st-on: oklch(0.175 0.032 279.4);
+  --st-ok: oklch(0.574 0.13 150);
+  --st-ok-fg: oklch(0.701 0.13 150);
+  --st-ok-soft: oklch(0.315 0.06 150);
+  --st-ok-border: oklch(0.387 0.09 150);
+  --st-warn: oklch(0.592 0.12 80.8);
+  --st-warn-fg: oklch(0.711 0.13 80.8);
+  --st-warn-soft: oklch(0.315 0.06 80.8);
+  --st-warn-border: oklch(0.392 0.082 80.8);
+  --st-info: oklch(0.58 0.1 218.4);
+  --st-info-fg: oklch(0.707 0.1 218.4);
+  --st-info-soft: oklch(0.315 0.06 218.4);
+  --st-info-border: oklch(0.39 0.07 218.4);
+  --st-danger: oklch(0.615 0.21 18.6);
+  --st-danger-fg: oklch(0.718 0.13 18.6);
+  --st-danger-soft: oklch(0.315 0.06 18.6);
+  --st-danger-border: oklch(0.395 0.09 18.6);
+  --st-neutral: oklch(0.589 0.02 279.4);
+  --st-neutral-fg: oklch(0.709 0.02 279.4);
+  --st-neutral-soft: oklch(0.315 0.02 279.4);
+  --st-neutral-border: oklch(0.391 0.02 279.4);
+
+  --background: oklch(0.175 0.032 279.4);
+  --foreground: oklch(0.965 0.006 80.8);
+  --card: oklch(0.228 0.034 279.4);
+  --card-foreground: oklch(0.965 0.006 80.8);
+  --popover: oklch(0.228 0.034 279.4);
+  --popover-foreground: oklch(0.965 0.006 80.8);
+  --primary: oklch(0.965 0.006 80.8);
+  --primary-foreground: oklch(0.175 0.032 279.4);
+  --secondary: oklch(0.285 0.032 279.4);
+  --secondary-foreground: oklch(0.965 0.006 80.8);
+  --muted: oklch(0.285 0.032 279.4);
+  --muted-foreground: oklch(0.67 0.03 279.4);
+  --accent: oklch(0.285 0.032 279.4);
+  --accent-foreground: oklch(0.965 0.006 80.8);
+  --destructive: oklch(0.65 0.19 18.6);
+  --destructive-foreground: oklch(0.175 0.032 279.4);
+  --border: oklch(0.346 0.025 279.4);
+  --input: oklch(0.518 0.03 279.4);
+  --ring: oklch(0.648 0.09 218.4);
+  --chart-1: oklch(0.816 0.168 80.8);
+  --chart-2: oklch(0.803 0.105 218.4);
+  --chart-3: oklch(0.72 0.09 279.4);
+  --chart-4: oklch(0.72 0.16 18.6);
+  --chart-5: oklch(0.7 0.1 320);
+  --sidebar: oklch(0.228 0.034 279.4);
+  --sidebar-foreground: oklch(0.965 0.006 80.8);
+  --sidebar-primary: oklch(0.816 0.168 80.8);
+  --sidebar-primary-foreground: oklch(0.281 0.125 279.4);
+  --sidebar-accent: oklch(0.285 0.032 279.4);
+  --sidebar-accent-foreground: oklch(0.965 0.006 80.8);
+  --sidebar-border: oklch(0.346 0.025 279.4);
+  --sidebar-ring: oklch(0.648 0.09 218.4);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+}
+
+/*
+ * Harakatni cheklash. Tizim sozlamasida "kamroq harakat" yoqilgan bo'lsa,
+ * bosh sahifadagi uzluksiz animatsiyalar (float, blob, marquee, wiggle, shine)
+ * va o'tishlar to'xtaydi. Tarkib yo'qolmaydi — faqat harakat olib tashlanadi,
+ * shuning uchun `reveal` elementlari darhol ko'rinadigan holatga o'tkaziladi.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    /*
+     * Kechikish ham nolga tushiriladi. Aks holda navbat bilan chiqadigan
+     * elementlar (`animation-delay` + `both`) tugallangan bo'lsa-da,
+     * kechikish tugaguncha ko'rinmay turadi — ya'ni tarkib yo'qoladi.
+     */
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
