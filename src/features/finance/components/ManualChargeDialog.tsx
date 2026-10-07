@@ -55,6 +55,7 @@ export function ManualChargeDialog() {
     >
       <div className="space-y-3">
         <ChildPicker
+          permission="charge:generate"
           label={t("charges.manual.child")}
           value={watch("childId")}
           onChange={(value) => setValue("childId", value, { shouldValidate: true })}

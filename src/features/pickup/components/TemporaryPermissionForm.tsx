@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormDialog, Field } from "@/components/forms/FormDialog";
 import { SelectField } from "@/components/common/SelectField";
-import { GuardianPicker } from "@/components/common/EntityPicker";
+import { PickupGuardianPicker } from "@/components/common/EntityPicker";
 import {
   temporaryPermissionSchema,
   type TemporaryPermissionFormValues,
@@ -99,7 +99,9 @@ export function TemporaryPermissionForm({ childId }: { childId: string }) {
           </Field>
         </div>
 
-        <GuardianPicker
+        <PickupGuardianPicker
+          childId={childId}
+          permission="pickup:temporary"
           label={t("pickup.persons.grantedBy")}
           value={watch("grantedByGuardianId") ?? ""}
           onChange={(value) => setValue("grantedByGuardianId", value)}

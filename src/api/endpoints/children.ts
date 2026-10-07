@@ -1,5 +1,5 @@
 import { api, type QueryParams } from "../http";
-import { toPage } from "../types";
+import { normalizeAlerts, normalizeMedical, toPage } from "../types";
 import type {
   Child,
   ChildDetail,
@@ -14,6 +14,8 @@ import type {
   LinkGuardianDto,
   ListParams,
   MedicalAlert,
+  MedicalAlertsEnvelope,
+  MedicalEnvelope,
   MedicalRecord,
   Paginated,
   UpdateChildDocumentDto,
@@ -54,10 +56,20 @@ export const childrenApi = {
   expiringDocuments: (withinDays = 30) =>
     api.get<ChildDocument[]>("/documents/expiring", { withinDays }),
 
-  medical: (id: Id) => api.get<MedicalRecord>(`/children/${id}/medical`),
+  /*
+    Server `{record, allergies, medications}` qaytaradi, eski o'rnatma esa
+    yassi yozuv. Ikkalasi ham bitta shaklga keltiriladi — aks holda
+    allergiyalar va dorilar ekranda yo'qolib ketadi.
+  */
+  medical: (id: Id) =>
+    api.get<MedicalRecord | MedicalEnvelope>(`/children/${id}/medical`).then(normalizeMedical),
   saveMedical: (id: Id, dto: MedicalRecord) =>
     api.put<MedicalRecord>(`/children/${id}/medical`, dto),
-  medicalAlerts: (id: Id) => api.get<MedicalAlert[]>(`/children/${id}/medical/alerts`),
+  /** `{allergies, emergencyInstructions}` yoki massiv — ikkalasi ham. */
+  medicalAlerts: (id: Id) =>
+    api
+      .get<MedicalAlert[] | MedicalAlertsEnvelope>(`/children/${id}/medical/alerts`)
+      .then(normalizeAlerts),
 
   consents: (id: Id) => api.get<Consent[]>(`/children/${id}/consents`),
   recordConsent: (

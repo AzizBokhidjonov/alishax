@@ -140,6 +140,7 @@ export function SimulateDialog() {
     >
       <div className="space-y-3">
         <ChildPicker
+          permission="billing_rules:manage"
           label={t("billing.rules.simulateChild")}
           value={watch("childId")}
           onChange={(value) => setValue("childId", value, { shouldValidate: true })}

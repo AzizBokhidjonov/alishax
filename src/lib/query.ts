@@ -40,6 +40,8 @@ export const qk = {
   groupHistory: (id: string) => ["groups", id, "history"] as const,
 
   attendance: (params: unknown = {}) => ["attendance", params] as const,
+  /** Taxta — kunning to'liq reyestri (`GET /attendance/board`). */
+  attendanceBoard: (params: unknown = {}) => ["attendance", "board", params] as const,
   attendanceToday: (params: unknown = {}) => ["attendance", "today", params] as const,
   attendanceInside: ["attendance", "inside"] as const,
   attendanceAbsent: (date: string) => ["attendance", "absent", date] as const,

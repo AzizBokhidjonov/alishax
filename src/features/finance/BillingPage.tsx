@@ -32,6 +32,7 @@ import { useIdempotencyKey } from "@/lib/idempotency";
 import { useLanguage } from "@/i18n/useLanguage";
 import { BillingRulesTab } from "./components/BillingRulesTab";
 import { BillingExplainDialog } from "./components/BillingExplainDialog";
+import { UnfinishedRunsPanel } from "./components/UnfinishedRunsPanel";
 import { useCommitBilling, useDiscardBilling, usePreviewBilling } from "./api";
 
 /**
@@ -97,7 +98,19 @@ function BillingRunTab() {
       </FilterBar>
 
       {!run ? (
-        <EmptyState icon={Calculator} title={t("billing.preview.empty")} />
+        <div className="space-y-4">
+          {/*
+            Yarim qolgan yurish bo'lsa, u bo'sh ekrandan OLDIN ko'rinadi:
+            «yana boshidan hisoblash» eng ko'p uchraydigan ortiqcha ish edi.
+          */}
+          <UnfinishedRunsPanel
+            onResume={(resumed) => {
+              setRun(resumed);
+              idempotency.reset();
+            }}
+          />
+          <EmptyState icon={Calculator} title={t("billing.preview.empty")} />
+        </div>
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-3">

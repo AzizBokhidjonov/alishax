@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { childrenApi, guardiansApi } from "@/api";
+import { childDisplayName, guardiansApi, lookupsApi, type LookupPermission } from "@/api";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -116,22 +116,41 @@ function Picker({
 }
 
 /** Bolani qidirib tanlash — ro'yxat serverda filtrlanadi. */
-export function ChildPicker(props: PickerProps & { groupId?: string }) {
+/**
+ * Bolani qidirib tanlash.
+ *
+ * `permission` berilsa, ro'yxat `/lookups/children` dan AMALNING huquqi
+ * ostida o'qiladi va faqat id bilan ism qaytadi. Bu muhim: ilgari har
+ * qanday tanlagich to'liq katalogni (`/children`) o'qirdi va bu xodimdan
+ * `child:read` talab qilardi — masalan olib ketishni rasmiylashtiradigan
+ * qabulxona uchun ortiqcha huquq (Handbook, 2026-10-04).
+ *
+ * Standart `child:read`: reyestr ekranlarida xatti-harakat o'zgarmaydi.
+ */
+export function ChildPicker({
+  permission = "child:read",
+  ...props
+}: PickerProps & { groupId?: string; permission?: LookupPermission }) {
   const [query, setQuery] = useState("");
   const debounced = useDebouncedValue(query);
   const params = useMemo(
-    () => ({ q: debounced.trim() || undefined, groupId: props.groupId, limit: 20 }),
-    [debounced, props.groupId],
+    () => ({
+      permission,
+      q: debounced.trim() || undefined,
+      groupId: props.groupId,
+      limit: 20,
+    }),
+    [debounced, permission, props.groupId],
   );
 
   const { data, isLoading } = useQuery({
-    queryKey: qk.children(params),
-    queryFn: () => childrenApi.list(params),
+    queryKey: ["lookups", "children", params],
+    queryFn: () => lookupsApi.children(params),
   });
 
   const options = (data?.data ?? []).map((child) => ({
     value: child.id,
-    label: `${child.lastName} ${child.firstName}`,
+    label: childDisplayName(child) || child.id,
     hint: child.groupName,
   }));
 
@@ -147,6 +166,87 @@ export function ChildPicker(props: PickerProps & { groupId?: string }) {
 }
 
 /** Ota-onani qidirib tanlash. */
+/**
+ * To'lovchi vasiy — FAQAT tanlangan bolaga bog'langanlar.
+ *
+ * Nega `GuardianPicker` yaramaydi: u butun vasiylar katalogini o'qiydi,
+ * ya'ni boshqa bolaning ota-onasini to'lovchi qilib qo'yish mumkin edi va
+ * xodimdan butun bog'cha bo'yicha `guardian:read` talab qilinardi. Bu
+ * tanlagich esa `/lookups/children/{id}/payers` dan o'qiydi: ro'yxat bolaga
+ * bog'langan, huquq esa `payment:create` (Handbook, 2026-10-04).
+ *
+ * Bola tanlanmaguncha tanlagich YOPIQ va nima qilish kerakligini aytadi —
+ * bo'sh ro'yxatni ko'rsatish «to'lovchi yo'q» degan noto'g'ri xulosa beradi.
+ */
+export function PayerPicker({ childId, ...props }: PickerProps & { childId?: string }) {
+  const { t } = useTranslation();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["lookups", "payers", childId],
+    queryFn: () => lookupsApi.payers(childId as string),
+    enabled: Boolean(childId),
+  });
+
+  const options = (data ?? []).map((payer) => ({ value: payer.id, label: payer.fullName }));
+
+  return (
+    <Picker
+      {...props}
+      disabled={props.disabled || !childId}
+      placeholder={childId ? props.placeholder : t("payments.form.chooseChildFirst")}
+      options={options}
+      isLoading={isLoading}
+      // Ro'yxat to'liq keladi — qidiruv serverga emas, shu ro'yxatga tegishli.
+      query=""
+      onQueryChange={() => undefined}
+    />
+  );
+}
+
+/**
+ * Ruxsat BERADIGAN ota-ona/vasiy — faqat shu bolaga bog'langanlar.
+ *
+ * `permission` ANIQ yuboriladi va u amalga mos kelishi kerak: doimiy
+ * olib ketuvchi uchun `pickup:manage`, vaqtinchalik ruxsat uchun
+ * `pickup:temporary`. Umumiy DTO'ning standarti (`child:read`) bu
+ * endpointda RAD ETILADI (Handbook, 2026-10-04).
+ */
+export function PickupGuardianPicker({
+  childId,
+  permission,
+  ...props
+}: PickerProps & {
+  childId?: string;
+  permission: "pickup:read" | "pickup:manage" | "pickup:temporary";
+}) {
+  const { t } = useTranslation();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["lookups", "pickup-guardians", childId, permission],
+    queryFn: () => lookupsApi.pickupGuardians(childId as string, permission),
+    enabled: Boolean(childId),
+  });
+
+  const options = (data ?? []).map((guardian) => ({
+    value: guardian.id,
+    label: guardian.fullName,
+    hint: guardian.phone,
+  }));
+
+  return (
+    <Picker
+      {...props}
+      disabled={props.disabled || !childId}
+      placeholder={childId ? props.placeholder : t("payments.form.chooseChildFirst")}
+      options={options}
+      isLoading={isLoading}
+      /* Ro'yxat to'liq keladi — serverga qidiruv yuborilmaydi. */
+      query=""
+      onQueryChange={() => undefined}
+    />
+  );
+}
+
 export function GuardianPicker(props: PickerProps) {
   const [query, setQuery] = useState("");
   const debounced = useDebouncedValue(query);

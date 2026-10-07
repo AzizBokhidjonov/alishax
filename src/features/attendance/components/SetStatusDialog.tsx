@@ -68,6 +68,7 @@ export function SetStatusDialog({
       <div className="space-y-3">
         {childId ? null : (
           <ChildPicker
+            permission="attendance:checkin"
             label={t("common.labels.child")}
             value={watch("childId")}
             onChange={(value) => setValue("childId", value, { shouldValidate: true })}

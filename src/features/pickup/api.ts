@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
+  lookupsApi,
   pickupApi,
   type CreatePickupPersonDto,
+  type PickupRecipient,
   type TemporaryPermissionDto,
   type UpdatePickupPersonDto,
 } from "@/api";
@@ -34,14 +36,41 @@ export function usePickupHistory(childId: string) {
 }
 
 /**
- * Qabulxona uchun asosiy tekshiruv: `allowed` bayrog'i va odamning surati.
- * Faqat ikkala id ham tanlanganda so'raladi.
+ * Bolaga BOG'LANGAN ota-ona/vasiylar (Handbook, 2026-10-04).
+ *
+ * Alohida endpoint, chunki olib ketishni rasmiylashtiradigan xodimda butun
+ * bog'cha bo'yicha `guardian:read` bo'lishi shart emas. `permission` ANIQ
+ * yuboriladi: umumiy DTO'ning standarti (`child:read`) bu yerda rad etiladi.
+ *
+ * Bu ro'yxat BO'SH bo'lsa ham olib ketish bloklanmaydi — qo'shimcha ruxsatlar
+ * ro'yxati alohida yuklanadi.
  */
-export function usePickupVerify(childId: string, pickupPersonId: string, enabled: boolean) {
+export function usePickupGuardians(
+  childId: string,
+  permission: "pickup:read" | "pickup:manage" | "pickup:temporary" = "pickup:read",
+) {
   return useQuery({
-    queryKey: qk.pickupVerify({ childId, pickupPersonId }),
-    queryFn: () => pickupApi.verify(childId, pickupPersonId),
-    enabled: enabled && Boolean(childId) && Boolean(pickupPersonId),
+    queryKey: ["lookups", "pickup-guardians", childId, permission],
+    queryFn: () => lookupsApi.pickupGuardians(childId, permission),
+    enabled: Boolean(childId),
+  });
+}
+
+/**
+ * Qabulxona uchun asosiy tekshiruv: `allowed` bayrog'i va odamning surati.
+ *
+ * Qabul qiluvchi teglangan: vasiy, ruxsat yoki ro'yxatdagi shaxs. Kesh kaliti
+ * ham turni o'z ichiga oladi — bir xil UUID boshqa turda boshqa natija beradi.
+ */
+export function usePickupVerify(
+  childId: string,
+  recipient: PickupRecipient | null,
+  enabled: boolean,
+) {
+  return useQuery({
+    queryKey: ["pickup", "verify", childId, recipient?.kind ?? "", recipient?.id ?? ""],
+    queryFn: () => pickupApi.verify(childId, recipient as PickupRecipient),
+    enabled: enabled && Boolean(childId) && recipient !== null,
     retry: false,
   });
 }

@@ -112,11 +112,25 @@ function FeaturesBlock({ block, media }: { block: PublicBlock; media: MediaUrl }
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {list(block.content, "items").map((item, index) => {
           const image = media(item.imageFileId);
+          const icon = text(item, "icon");
           return (
             <Reveal key={index} delay={index * 60}>
               <article className="h-full rounded-3xl border border-border bg-card p-6 shadow-sm">
                 {image ? (
                   <img src={image} alt="" className="mb-4 h-32 w-full rounded-2xl object-cover" />
+                ) : null}
+                {/*
+                  `icon` — muharrirga EMOJI sifatida kiritiladi, shuning uchun
+                  u shunchaki matn bo'lib chiziladi: hech qanday ikonka
+                  kutubxonasi va nomlar ro'yxati kerak emas.
+
+                  `aria-hidden`: emoji yonidagi sarlavha ayni ma'noni matn
+                  bilan aytadi, ekran o'quvchi uni ikki marta o'qimasligi kerak.
+                */}
+                {icon ? (
+                  <div aria-hidden className="mb-3 text-3xl leading-none">
+                    {icon}
+                  </div>
                 ) : null}
                 <h3 className="text-lg font-bold">{text(item, "title")}</h3>
                 {text(item, "description") ? (

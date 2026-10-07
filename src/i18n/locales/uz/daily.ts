@@ -123,7 +123,18 @@ export const pickup = {
     selectBoth: "Bola va olib ketuvchini tanlang",
     photoMissing: "Surat yuklanmagan",
   },
+  recipients: {
+    guardians: "Ota-ona / vasiylar",
+    others: "Boshqa ruxsat berilgan odamlar",
+    noGuardians: "Bu bolaga bog'langan ota-ona yo'q.",
+    noOthers: "Qo'shimcha ruxsat berilgan odam yo'q.",
+    adhoc: "bir martalik ruxsat",
+    nobody:
+      "Bolani berish uchun hech kim yo'q: avval ota-onani bolaga bog'lash yoki tegishli huquqli xodim orqali boshqa odamga ruxsat berish kerak.",
+    loadFailed: "Ro'yxatni yuklab bo'lmadi.",
+  },
   persons: {
+    unnamed: "Ism ko'rsatilmagan",
     title: "Olib ketuvchilar",
     add: "Olib ketuvchi qo'shish",
     edit: "Olib ketuvchi ma'lumotlari",

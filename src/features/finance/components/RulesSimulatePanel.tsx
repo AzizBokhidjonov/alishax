@@ -82,6 +82,7 @@ export function RulesSimulatePanel({ rulesJson, onSimulated }: RulesSimulatePane
       <div className="text-sm font-medium">{t("billing.rules.simulateRequired")}</div>
 
       <ChildPicker
+        permission="billing_rules:manage"
         label={t("billing.rules.simulateChild")}
         value={childId}
         onChange={(value) => {

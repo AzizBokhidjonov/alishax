@@ -144,6 +144,73 @@ export interface MedicalAlert {
   instruction?: string;
 }
 
+/**
+ * Tibbiy javoblarning SERVER shakli (Handbook, 2026-10-04).
+ *
+ * To'liq o'qish `{record, allergies, medications}` qaytaradi, cheklangan
+ * ogohlantirish o'qishi esa `{allergies, emergencyInstructions}`. Frontend
+ * esa yassi `MedicalRecord` ni kutardi — ya'ni allergiyalar va dorilar
+ * javobda kelsa ham ekranda ko'rinmasdi.
+ *
+ * Ikki shakl ham qabul qilinadi: javob sxemasi hujjatlashtirilmagan va
+ * o'rnatmalar bir vaqtda ikki xil bo'lishi mumkin. Normallashtirish
+ * `normalizeMedical()` / `normalizeAlerts()` da.
+ */
+export interface MedicalEnvelope {
+  record?: Omit<MedicalRecord, "allergies" | "medications">;
+  allergies?: Allergy[];
+  medications?: Medication[];
+}
+
+/**
+ * Ogohlantirish javobi.
+ *
+ * «Ogohlantirish bor» degani: allergiya bor YOKI shoshilinch ko'rsatma
+ * bo'sh emas. Shuning uchun `emergencyInstructions` ham qaytadi.
+ */
+export interface MedicalAlertsEnvelope {
+  allergies?: Allergy[];
+  emergencyInstructions?: string | null;
+}
+
+/** Ikki shaklni bitta yassi yozuvga keltirish. */
+export function normalizeMedical(input: MedicalRecord | MedicalEnvelope): MedicalRecord {
+  if (input && typeof input === "object" && "record" in input) {
+    const envelope = input as MedicalEnvelope;
+    return {
+      ...(envelope.record ?? {}),
+      allergies: envelope.allergies ?? [],
+      medications: envelope.medications ?? [],
+    };
+  }
+  const flat = input as MedicalRecord;
+  return { ...flat, allergies: flat.allergies ?? [], medications: flat.medications ?? [] };
+}
+
+/**
+ * Ogohlantirishlar ro'yxati.
+ *
+ * Shoshilinch ko'rsatma allergiya emas, lekin u ham OGOHLANTIRISH: u bo'lsa
+ * ro'yxatga alohida element bo'lib qo'shiladi, aks holda tarbiyachi uni
+ * hech qachon ko'rmaydi (to'liq yozuv unga ochiq emas).
+ */
+export function normalizeAlerts(
+  input: MedicalAlert[] | MedicalAlertsEnvelope | null | undefined,
+): MedicalAlert[] {
+  if (Array.isArray(input)) return input;
+  if (!input) return [];
+
+  const alerts: MedicalAlert[] = (input.allergies ?? []).map((allergy) => ({
+    allergen: allergy.allergen,
+    severity: allergy.severity,
+    instruction: allergy.instruction ?? allergy.reaction,
+  }));
+
+  const emergency = input.emergencyInstructions?.trim();
+  if (emergency) alerts.push({ allergen: "", instruction: emergency });
+  return alerts;
+}
+
 export type ConsentType =
   "personal_data" | "photography" | "medical_storage" | "notifications" | "mobile_access";
 

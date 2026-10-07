@@ -56,32 +56,122 @@ export const LANDING_TENANT_CODE: string =
  * Kesh brauzerga qoldirilgan: javob `ETag` va `max-age=60` bilan keladi,
  * ya'ni takroriy so'rov `304` bo'lib qaytadi va tarmoqqa yuk tushmaydi.
  */
-export const publicLandingApi = {
-  async page(lang: string, tenantCode = LANDING_TENANT_CODE): Promise<PublicLandingPage> {
-    const path = tenantCode ? `/public/landing/${tenantCode}` : "/public/landing";
-    const response = await fetch(`${API_BASE_URL}${path}${buildQuery({ lang })}`, {
-      headers: { Accept: "application/json" },
-    });
 
-    if (!response.ok) {
-      let envelope: Partial<ErrorEnvelope> = {};
-      try {
-        envelope = (await response.json()) as Partial<ErrorEnvelope>;
-      } catch {
-        // Javob JSON emas — holat kodidan zaxira kod olinadi.
-      }
-      throw new ApiError({
-        code: envelope.error?.code ?? fallbackCode(response.status),
-        status: response.status,
-        message: envelope.error?.message,
-        traceId: envelope.error?.traceId,
+/**
+ * Sahifa ikki xil manzilda turishi mumkin va QAYSI BIRI ishlashi bu
+ * yerdan ko'rinmaydi:
+ *
+ *   - `/public/landing/{tenantCode}` — kod `VITE_LANDING_TENANT_CODE` da;
+ *   - `/public/landing` — backendda `LANDING_DEFAULT_TENANT_CODE` o'rnatilgan
+ *     bitta bog'chali o'rnatmalar uchun.
+ *
+ * Ilgari faqat bittasi sinalardi: kod bo'sh bo'lsa yalang'och yo'l, aks holda
+ * kodli yo'l. Ikkala sozlama ham qo'yilmagan bo'lsa natija `404` bo'lardi va
+ * sayt jimgina statik matnga qaytardi — ya'ni adminkada kiritilgan va CHOP
+ * ETILGAN kontent hech qachon ko'rinmasdi, sababi esa ekranda aytilmasdi.
+ * Endi ikkalasi ham sinaladi va qaysi biri ishlagani `diagnose()` orqali
+ * muharrirga ko'rsatiladi.
+ */
+function candidatePaths(tenantCode: string): string[] {
+  const paths = tenantCode
+    ? [`/public/landing/${tenantCode}`, "/public/landing"]
+    : ["/public/landing"];
+  return paths;
+}
+
+async function readEnvelope(response: Response): Promise<ApiError> {
+  let envelope: Partial<ErrorEnvelope> = {};
+  try {
+    envelope = (await response.json()) as Partial<ErrorEnvelope>;
+  } catch {
+    // Javob JSON emas — holat kodidan zaxira kod olinadi.
+  }
+  return new ApiError({
+    code: envelope.error?.code ?? fallbackCode(response.status),
+    status: response.status,
+    message: envelope.error?.message,
+    traceId: envelope.error?.traceId,
+  });
+}
+
+/** Qaysi yo'l ishlagani — keyingi so'rovlar to'g'ridan-to'g'ri shunga boradi. */
+let resolvedPath: string | null = null;
+
+export const publicLandingApi = {
+  async page(
+    lang: string,
+    tenantCode = LANDING_TENANT_CODE,
+    /** SSR'da meta uchun o'qilganda kutish vaqtini cheklash uchun. */
+    signal?: AbortSignal,
+  ): Promise<PublicLandingPage> {
+    const paths = resolvedPath
+      ? [resolvedPath, ...candidatePaths(tenantCode)]
+      : candidatePaths(tenantCode);
+    let lastError: ApiError | null = null;
+
+    for (const path of [...new Set(paths)]) {
+      const response = await fetch(`${API_BASE_URL}${path}${buildQuery({ lang })}`, {
+        headers: { Accept: "application/json" },
+        signal,
       });
+
+      if (response.ok) {
+        resolvedPath = path;
+        return (await response.json()) as PublicLandingPage;
+      }
+
+      lastError = await readEnvelope(response);
+      // `404` — «bu manzilda sahifa yo'q»: keyingi nomzodni sinash mantiqiy.
+      // Boshqa har qanday xato (5xx, tarmoq) takrorlansa ham shu bo'ladi.
+      if (response.status !== 404) break;
+      if (resolvedPath === path) resolvedPath = null;
     }
 
-    return (await response.json()) as PublicLandingPage;
+    throw lastError ?? new ApiError({ code: "NOT_FOUND", status: 404 });
   },
 
   /** Ommaviy rasm manzili. Muharrirda esa oddiy `/files/:id` ishlatiladi (§5). */
   mediaUrl: (page: Pick<PublicLandingPage, "mediaBaseUrl">, fileId: string) =>
     `${page.mediaBaseUrl}/${fileId}`,
+
+  /**
+   * Muharrir uchun tashxis: har bir nomzod manzil nima qaytaradi.
+   *
+   * «Chop etdim, lekin saytda ko'rinmayapti» eng ko'p uchraydigan shikoyat va
+   * uning sababi deyarli har doim sozlamada — tenant kodi yo'q yoki noto'g'ri.
+   * Shuni taxmin qildirmay, aniq ko'rsatish kerak.
+   */
+  async diagnose(
+    lang: string,
+    /*
+      Sinaladigan tenant kodlari. Muharrir AUTENTIFIKATSIYALANGAN, ya'ni u
+      qoralamadagi `slug` ni biladi — ommaviy sahifa esa bilmaydi. Shuning
+      uchun tashxis shu qo'shimcha nomzodni ham sinaydi: kod topilsa, uni
+      `.env` ga ko'chirib yozish kifoya va taxmin qilish kerak bo'lmaydi.
+    */
+    codes: string[] = [LANDING_TENANT_CODE],
+  ): Promise<{ path: string; url: string; status: number; code?: string; blocks?: number }[]> {
+    const paths = [
+      ...new Set(codes.filter(Boolean).map((code) => `/public/landing/${code}`)),
+      "/public/landing",
+    ];
+
+    const results = [];
+    for (const path of paths) {
+      const url = `${API_BASE_URL}${path}${buildQuery({ lang })}`;
+      try {
+        const response = await fetch(url, { headers: { Accept: "application/json" } });
+        if (response.ok) {
+          const page = (await response.json()) as PublicLandingPage;
+          results.push({ path, url, status: response.status, blocks: page.blocks?.length ?? 0 });
+        } else {
+          const error = await readEnvelope(response);
+          results.push({ path, url, status: response.status, code: error.code });
+        }
+      } catch {
+        results.push({ path, url, status: 0, code: "NETWORK" });
+      }
+    }
+    return results;
+  },
 };

@@ -2,6 +2,32 @@ export const charges = {
   title: "Hisoblar",
   subtitle: "Hisoblar o'chirilmaydi — teskari yozuv qo'shiladi.",
   add: "Qo'lda hisob",
+  tabs: {
+    current: "Joriy hisoblar",
+    ledger: "Daftarcha",
+  },
+  adjust: {
+    title: "Tuzatish",
+    hint: "Oilaga kredit yozadi yoki qarz qo'shadi. Bu naqd pul qaytarish EMAS — qaytarish alohida amalga oshiriladi.",
+    direction: "Yo'nalish",
+    credit: "Oila foydasiga (kredit)",
+    debit: "Qarz qo'shiladi",
+    creditHint: "Summa oilaning qarzidan ayiriladi.",
+    debitHint: "Summa oilaning qarziga qo'shiladi.",
+    dueDate: "To'lov muddati",
+    done: "Tuzatish kiritildi",
+  },
+  recalculate: {
+    title: "Qayta hisoblash",
+    hint: "Davomat tuzatilgandan keyin oyni qayta hisoblaydi. Natija: hisob qaytarilib qayta yozilishi, keyingi ochiq davrga tuzatish qo'shilishi yoki qo'lda hal qilinadigan ish paydo bo'lishi mumkin.",
+    done: "Qayta hisoblash bajarildi",
+  },
+  ledger: {
+    empty: "Daftarcha bo'sh",
+    emptyHint: "Hisob yozilgandan keyin bu yerda to'liq tarix ko'rinadi.",
+    createdAt: "Yozilgan",
+    reversal: "Qarshi satr",
+  },
   columns: {
     child: "Bola",
     period: "Davr",
@@ -47,6 +73,7 @@ export const payments = {
     recordedBy: "Qabul qildi",
   },
   form: {
+    chooseChildFirst: "Avval bolani tanlang",
     child: "Bola",
     payer: "To'lovchi ota-ona",
     amount: "Summa (so'm)",

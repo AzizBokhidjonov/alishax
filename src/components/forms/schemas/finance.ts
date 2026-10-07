@@ -61,6 +61,25 @@ export const periodSchema = z.object({
 });
 export type PeriodFormValues = z.infer<typeof periodSchema>;
 
+/**
+ * Qo'lda tuzatish — oilaga kredit yoki qo'shimcha qarz.
+ *
+ * Summa har doim MUSBAT so'mda kiritiladi, yo'nalishni esa `sign` aytadi:
+ * ikkita alohida maydon bitta ishorali maydondan xavfsizroq — «minus»ni
+ * ko'rmay qolib oilaga qarz yozib yuborish mumkin emas.
+ *
+ * Sabab kamida 10 belgi: server ham shuni talab qiladi va bu yozuv
+ * daftarchada abadiy qoladi.
+ */
+export const adjustmentSchema = z.object({
+  periodId: requiredId,
+  sign: z.enum(["-1", "1"]),
+  amountSom: somAmount,
+  reason: requiredText(10),
+  dueDate: optionalIsoDate,
+});
+export type AdjustmentFormValues = z.infer<typeof adjustmentSchema>;
+
 export const manualChargeSchema = z.object({
   childId: requiredId,
   periodId: requiredId,

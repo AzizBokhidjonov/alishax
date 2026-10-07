@@ -76,7 +76,12 @@ export function BlockFormDialog({
     };
 
     if (block) update.mutate({ id: block.id, dto: { content: payload } }, { onSuccess, onError });
-    else create.mutate({ type, content: payload }, { onSuccess, onError });
+    /*
+      `isVisible` ANIQ yuboriladi. Server standarti `true`, lekin yangi blok
+      qo'shishdan maqsad uni KO'RSATISH — bu standartga suyanib qo'yiladigan
+      narsa emas. Baribir qoralama: chop etilgunga qadar saytga chiqmaydi.
+    */
+    else create.mutate({ type, content: payload, isVisible: true }, { onSuccess, onError });
   };
 
   return (

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FormDialog, Field } from "@/components/forms/FormDialog";
 import { SelectField } from "@/components/common/SelectField";
-import { GuardianPicker } from "@/components/common/EntityPicker";
+import { PickupGuardianPicker } from "@/components/common/EntityPicker";
 import { FileUploadField } from "@/components/common/FileUploadField";
 import { pickupPersonSchema, type PickupPersonFormValues } from "@/components/forms/schemas";
 import { useEntityForm } from "@/hooks/use-entity-form";
@@ -101,7 +101,9 @@ export function PickupPersonForm({ childId }: { childId: string }) {
         ) : null}
 
         <div className="sm:col-span-2">
-          <GuardianPicker
+          <PickupGuardianPicker
+            childId={childId}
+            permission="pickup:manage"
             label={t("pickup.persons.grantedBy")}
             value={watch("grantedByGuardianId") ?? ""}
             onChange={(value) => setValue("grantedByGuardianId", value)}

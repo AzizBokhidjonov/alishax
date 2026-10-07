@@ -50,6 +50,17 @@ export interface AssignChildTariffDto {
   effectiveTo?: IsoDate;
 }
 
+/**
+ * Biriktirishni tugatish (`PATCH /children/{id}/tariffs/{assignmentId}`).
+ *
+ * Yangi tarif biriktirilganda server mos keladigan eski biriktirishlarni
+ * o'zi yopadi; bu endpoint esa biriktirishni MUDDATIDAN OLDIN qo'lda
+ * yopish uchun. Mavjud hisoblar o'z hisob-kitob suratini saqlaydi.
+ */
+export interface EndChildTariffDto {
+  effectiveTo: IsoDate;
+}
+
 export type DiscountKind = "percent" | "fixed";
 
 export interface Discount {

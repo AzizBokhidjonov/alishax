@@ -15,7 +15,7 @@ import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { EmptyState } from "@/components/common/EmptyState";
 import { LayoutTemplate } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { blockPreviewText, isSupportedType } from "../block-schema";
+import { blockPreviewText, isBlockVisible, isSupportedType } from "../block-schema";
 import { useDeleteBlock, useReorderBlocks, useUpdateBlock } from "../api";
 import { BlockFormDialog } from "./BlockFormDialog";
 
@@ -103,11 +103,12 @@ export function BlockList({ blocks, catalog, locales }: BlockListProps) {
         <div className="space-y-2">
           {blocks.map((block, index) => {
             const preview = blockPreviewText(block.content, locales);
+            const visible = isBlockVisible(block);
             return (
               <Card
                 key={block.id}
                 /* Yashirilgan blok ko'zga ko'rinib turishi kerak — u chop etilmaydi (§4). */
-                className={cn(!block.isVisible && "border-dashed bg-secondary/40 opacity-75")}
+                className={cn(!visible && "border-dashed bg-secondary/40 opacity-75")}
               >
                 <CardContent className="flex flex-wrap items-center gap-3 p-3">
                   <div className="flex flex-col">
@@ -138,9 +139,7 @@ export function BlockList({ blocks, catalog, locales }: BlockListProps) {
                       <span className="font-bold">
                         {t(`website.types.${block.type}`, { defaultValue: block.type })}
                       </span>
-                      {!block.isVisible ? (
-                        <Badge tone="neutral">{t("website.blocks.hidden")}</Badge>
-                      ) : null}
+                      {!visible ? <Badge tone="neutral">{t("website.blocks.hidden")}</Badge> : null}
                       {!isSupportedType(block.type) ? (
                         <Badge tone="warn">{t("website.blocks.unsupportedShort")}</Badge>
                       ) : null}
@@ -154,18 +153,10 @@ export function BlockList({ blocks, catalog, locales }: BlockListProps) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      aria-label={
-                        block.isVisible ? t("website.blocks.hide") : t("website.blocks.show")
-                      }
-                      onClick={() =>
-                        update.mutate({ id: block.id, dto: { isVisible: !block.isVisible } })
-                      }
+                      aria-label={visible ? t("website.blocks.hide") : t("website.blocks.show")}
+                      onClick={() => update.mutate({ id: block.id, dto: { isVisible: !visible } })}
                     >
-                      {block.isVisible ? (
-                        <Eye className="h-4 w-4" />
-                      ) : (
-                        <EyeOff className="h-4 w-4" />
-                      )}
+                      {visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                     </Button>
 
                     <BlockFormDialog

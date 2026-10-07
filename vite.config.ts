@@ -27,7 +27,17 @@ export default defineConfig({
     // Proksi tufayli cookie bir xil manzilda qoladi va yangilash halqasi ishlaydi.
     nitro({
       routeRules: {
-        "/api/**": { proxy: `${API_TARGET}/api/**` },
+        "/api/**": {
+          proxy: {
+            to: `${API_TARGET}/api/**`,
+            // Backend CORS ro'yxatida faqat prod manzillari bor va noma'lum
+            // `Origin` kelsa u 500 `INTERNAL_ERROR` qaytaradi. Brauzer dev'da
+            // `Origin: http://localhost:8080` yuboradi, proksi esa uni o'zgarishsiz
+            // uzatadi — natijada kirish 500 bilan tugaydi. Bu so'rov server-server
+            // bo'lgani uchun `Origin` umuman kerak emas, shuning uchun olib tashlanadi.
+            filterHeaders: ["origin"],
+          },
+        },
       },
     }),
     viteReact(),
@@ -48,10 +58,14 @@ export default defineConfig({
   },
   server: {
     port: 8080,
+    // Port band bo'lsa vite jimgina 8081, 8082 ga ko'chadi va brauzerda eski
+    // jarayon ochilib qoladi. Ko'chish o'rniga xato berilsin.
+    strictPort: true,
     host: true,
   },
   preview: {
     port: 8080,
+    strictPort: true,
     host: true,
   },
 });

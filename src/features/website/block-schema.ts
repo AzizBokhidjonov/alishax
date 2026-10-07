@@ -166,6 +166,17 @@ export const BLOCK_FIELDS: Record<string, FieldSpec[]> = {
 export const isSupportedType = (type: string): boolean => type in BLOCK_FIELDS;
 
 /**
+ * Blok chop etiladimi.
+ *
+ * FAQAT aniq `false` yashirilgan degani. Ilgari bu `!block.isVisible` bilan
+ * o'qilardi va server maydonni javobda tushirib qoldirsa, HAR BIR blok
+ * «Chop etilmaydi» deb belgilanardi — aslida ular ko'rinadigan bo'lsa ham.
+ * Serverdagi standart `true`, shuning uchun `undefined` ham ko'rinadigan.
+ */
+export const isBlockVisible = (block: { isVisible?: boolean }): boolean =>
+  block.isVisible !== false;
+
+/**
  * Serverdagi maydonlar ro'yxati bilan kesishma. Katalogda bo'lmagan maydon
  * chizilmaydi — aks holda `content` da ortiqcha kalit paydo bo'ladi va
  * server uni `422` bilan rad etadi (tarkib obyektlari QAT'IY, §3).

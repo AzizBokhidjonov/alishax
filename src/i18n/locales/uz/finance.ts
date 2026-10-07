@@ -24,6 +24,10 @@ export const tariffs = {
   futureOnlyHint:
     "Tarif o'zgarishi faqat kelgusi davrlarga ta'sir qiladi — mavjud hisoblar o'z nusxasini saqlaydi.",
   assign: {
+    end: "Yopish",
+    endHint:
+      "Biriktirish bugundan keyin qo'llanmaydi. Mavjud hisoblar o'z hisob-kitobini saqlaydi.",
+    ended: "Biriktirish yopildi",
     title: "Bolaga tarif biriktirish",
     tariff: "Tarif",
     effectiveFrom: "Boshlanish sanasi",
@@ -55,6 +59,8 @@ export const periods = {
   subtitle: "{{year}}-yil davrlari",
   add: "Davr ochish",
   columns: {
+    year: "Yil",
+    month: "Oy",
     period: "Davr",
     status: "Holati",
     closedAt: "Yopilgan",
@@ -71,6 +77,11 @@ export const periods = {
 };
 
 export const billing = {
+  unfinished: {
+    title: "Tugallanmagan hisoblashlar",
+    hint: "Oldindan ko'rish serverda saqlanadi — yarim qolgan ishni boshidan hisoblash kerak emas.",
+    resume: "Davom ettirish",
+  },
   title: "Hisoblash",
   tabs: {
     run: "Hisoblash",

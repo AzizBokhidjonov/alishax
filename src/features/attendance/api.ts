@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import {
   attendanceApi,
   isApiError,
+  type AttendanceBoard,
   type AttendanceRecord,
   type CheckInDto,
   type CheckOutDto,
@@ -84,41 +85,76 @@ export function useCorrections(params: { from?: string; to?: string; userId?: st
 
 const ATTENDANCE_KEYS = [["attendance"]];
 
-type TodaySnapshot = [readonly unknown[], AttendanceRecord[] | undefined][];
+type BoardSnapshot = [readonly unknown[], AttendanceBoard | undefined][];
 
 /**
- * Bugungi taxta keshiga optimistik o'zgarish.
+ * Taxta keshiga BITTA qatorni yozish.
  *
- * Yozuvi BOR bola yangilanadi, yozuvi YO'Q bolaga esa yangi qator qo'shiladi —
- * ertalab aynan ikkinchi hol asosiy: `GET /attendance/today` bo'sh keladi va
- * mavjud qatorni yangilash hech nimani o'zgartirmaydi. Sun'iy qatorda guruh
- * ma'lumoti yo'q, uni taxta reyestrdan to'ldiradi (`use-board-rows.ts`).
+ * Handbook (2026-10-04) buni aniq talab qiladi: muvaffaqiyatli amaldan keyin
+ * faqat mos keladigan qatorning `attendance` i almashtiriladi, `child`
+ * obyekti va qolgan qatorlar saqlanadi. Shunda guruh tanlovi, qidiruv,
+ * fokus va skroll joyida qoladi — butun ro'yxatni qayta qurish esa aynan
+ * shularni yo'qotadi.
+ *
+ * Mos keltirish `response.childId` ↔ `row.child.id` bo'yicha: davomat
+ * yozuvining `id` si optimistik qatorda hali yo'q.
  */
-function patchToday(
+function patchBoard(
   queryClient: QueryClient,
   childId: string,
   patch: Partial<AttendanceRecord>,
-): TodaySnapshot {
-  const snapshot = queryClient.getQueriesData<AttendanceRecord[]>({
-    queryKey: ["attendance", "today"],
+): BoardSnapshot {
+  const snapshot = queryClient.getQueriesData<AttendanceBoard>({
+    queryKey: ["attendance", "board"],
   });
 
-  for (const [key, rows] of snapshot) {
-    if (!rows) continue;
-    const known = rows.some((row) => row.childId === childId);
-    queryClient.setQueryData<AttendanceRecord[]>(
-      key,
-      known
-        ? rows.map((row) => (row.childId === childId ? { ...row, ...patch } : row))
-        : [...rows, { id: `optimistic:${childId}`, childId, date: todayIso(), ...patch }],
-    );
+  for (const [key, board] of snapshot) {
+    if (!board) continue;
+    queryClient.setQueryData<AttendanceBoard>(key, {
+      ...board,
+      data: board.data.map((item) =>
+        item.child.id === childId
+          ? {
+              ...item,
+              recorded: true,
+              attendance: {
+                // Yozuv hali bo'lmasa, optimistik qator shu yerda tug'iladi.
+                id: item.attendance?.id ?? `optimistic:${childId}`,
+                childId,
+                date: board.date,
+                ...item.attendance,
+                ...patch,
+              },
+            }
+          : item,
+      ),
+    });
   }
 
   return snapshot;
 }
 
-function restoreToday(queryClient: QueryClient, snapshot: TodaySnapshot | undefined): void {
-  for (const [key, rows] of snapshot ?? []) queryClient.setQueryData(key, rows);
+/** Serverdan kelgan HAQIQIY yozuvni joyiga qo'yish. */
+function applyRecord(queryClient: QueryClient, record: AttendanceRecord): void {
+  const entries = queryClient.getQueriesData<AttendanceBoard>({
+    queryKey: ["attendance", "board"],
+  });
+
+  for (const [key, board] of entries) {
+    if (!board) continue;
+    queryClient.setQueryData<AttendanceBoard>(key, {
+      ...board,
+      data: board.data.map((item) =>
+        item.child.id === record.childId
+          ? { ...item, recorded: true, attendance: { ...item.attendance, ...record } }
+          : item,
+      ),
+    });
+  }
+}
+
+function restoreBoard(queryClient: QueryClient, snapshot: BoardSnapshot | undefined): void {
+  for (const [key, board] of snapshot ?? []) queryClient.setQueryData(key, board);
 }
 
 /**
@@ -169,14 +205,21 @@ export function useCheckIn() {
 
     onMutate: async (dto: CheckInDto) => {
       // Ketayotgan so'rovlar keshni eski javob bilan bosib ketmasin.
-      await queryClient.cancelQueries({ queryKey: ["attendance", "today"] });
+      await queryClient.cancelQueries({ queryKey: ["attendance", "board"] });
       return {
-        snapshot: patchToday(queryClient, dto.childId, {
+        snapshot: patchBoard(queryClient, dto.childId, {
           checkInAt: new Date().toISOString(),
           status: "present",
         }),
       };
     },
+
+    /*
+      Serverning javobi — HAQIQIY yozuv (id, aniq vaqt, holat). U optimistik
+      qator ustiga joyida yoziladi, shuning uchun to'liq qayta o'qish kerak
+      bo'lmaydi va ro'yxat sakramaydi (Handbook, 2026-10-04).
+    */
+    onSuccess: (record) => applyRecord(queryClient, record),
 
     onError: (error, dto, context) => {
       if (isApiError(error) && error.code === "ALREADY_CHECKED_IN") {
@@ -197,20 +240,47 @@ export function useCheckIn() {
         return;
       }
 
-      restoreToday(queryClient, context?.snapshot);
+      restoreBoard(queryClient, context?.snapshot);
       showError(error);
     },
 
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: ["attendance"] });
+      /*
+        Taxta joyida yangilandi, shuning uchun uni qayta o'qish SHART EMAS —
+        aksincha, amaldan oldin boshlangan sekin so'rov yangi holatni bosib
+        ketishi mumkin. Qolgan ko'rsatkichlar (ichkarida, jamlanma) esa
+        yangilanadi.
+      */
+      void queryClient.invalidateQueries({ queryKey: ["attendance"], type: "active" });
     },
   });
 }
 
+/**
+ * Chiqishni qayd etish.
+ *
+ * Optimistik yangilash ATAYLAB yo'q: bola serverning tasdig'igacha
+ * «chiqqan» deb ko'rsatilmaydi (§3, idempotentlik va qaytarish siyosati).
+ * Server avtorizatsiyani qayta tekshiradi va faqat muvaffaqiyatli javob
+ * ketishni tasdiqlaydi.
+ */
 export function useCheckOut() {
-  return useApiMutation({
+  const showError = useErrorToast();
+  const queryClient = useQueryClient();
+
+  return useMutation({
     mutationFn: (dto: CheckOutDto) => attendanceApi.checkOut(dto),
-    invalidate: ATTENDANCE_KEYS,
+    onSuccess: (record) => {
+      applyRecord(queryClient, record);
+      void queryClient.invalidateQueries({ queryKey: ["attendance", "inside"] });
+      void queryClient.invalidateQueries({ queryKey: ["attendance", "not-picked-up"] });
+      void queryClient.invalidateQueries({ queryKey: ["pickup"] });
+    },
+    /*
+      Xato `usePickupCheckOut` da ham ushlanadi (403/PICKUP_* hukmni qayta
+      chizadi). Toast esa qolgan hollar uchun — masalan `ALREADY_CHECKED_OUT`.
+    */
+    onError: (error) => showError(error),
   });
 }
 
@@ -232,17 +302,19 @@ export function useSetAttendanceStatus() {
       // Bugungi taxtaga tegishli bo'lmagan sana keshni chalg'itmasin —
       // sabab o'tgan kunga ham qo'yiladi (jurnal, tuzatish oynasi).
       if (dto.date !== todayIso()) return {};
-      await queryClient.cancelQueries({ queryKey: ["attendance", "today"] });
-      return { snapshot: patchToday(queryClient, dto.childId, { status: dto.status }) };
+      await queryClient.cancelQueries({ queryKey: ["attendance", "board"] });
+      return { snapshot: patchBoard(queryClient, dto.childId, { status: dto.status }) };
     },
 
+    onSuccess: (record) => applyRecord(queryClient, record),
+
     onError: (error, _dto, context) => {
-      restoreToday(queryClient, context?.snapshot);
+      restoreBoard(queryClient, context?.snapshot);
       showError(error);
     },
 
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: ["attendance"] });
+      void queryClient.invalidateQueries({ queryKey: ["attendance"], type: "active" });
     },
   });
 }

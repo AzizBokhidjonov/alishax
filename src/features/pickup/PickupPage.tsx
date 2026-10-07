@@ -12,7 +12,7 @@ import { P } from "@/config/permissions";
 import { useInside } from "@/features/attendance/api";
 import { childDisplayName, useChildLookup } from "@/features/children/use-child-lookup";
 import { PickupPersonsPanel } from "./components/PickupPersonsPanel";
-import { PickupPersonPicker } from "./components/PickupPersonPicker";
+import { PickupRecipientPicker } from "./components/PickupRecipientPicker";
 import { PickupVerdict } from "./components/PickupVerdict";
 import { usePickupCheckOut } from "./use-pickup-checkout";
 
@@ -58,15 +58,21 @@ export function PickupPage() {
             <CardTitle className="text-base">{t("pickup.verify.title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <ChildPicker label={t("pickup.verify.child")} value={childId} onChange={selectChild} />
+            <ChildPicker
+              label={t("pickup.verify.child")}
+              /* Qabulxonaga `child:read` shart emas — olib ketish huquqi yetadi. */
+              permission="pickup:read"
+              value={childId}
+              onChange={selectChild}
+            />
 
             {childId ? (
               <div className="space-y-2">
                 <span className="text-sm font-medium">{t("pickup.verify.person")}</span>
-                <PickupPersonPicker
+                <PickupRecipientPicker
                   childId={childId}
-                  value={flow.personId}
-                  onChange={flow.selectPerson}
+                  value={flow.recipient}
+                  onChange={flow.selectRecipient}
                   className="max-h-96 overflow-y-auto"
                 />
               </div>
@@ -76,7 +82,7 @@ export function PickupPage() {
 
         <Card
           className={
-            !childId || !flow.personId || flow.verify.isLoading || flow.verifyError
+            !childId || !flow.recipient || flow.verify.isLoading || flow.verifyError
               ? undefined
               : flow.allowed
                 ? "border-st-ok-border bg-st-ok-soft"
@@ -86,7 +92,7 @@ export function PickupPage() {
           <CardContent className="flex min-h-80 flex-col items-center justify-center gap-3 p-6 text-center">
             <PickupVerdict
               childId={childId}
-              personId={flow.personId}
+              recipient={flow.recipient}
               data={flow.verdict}
               isLoading={flow.verify.isLoading}
               error={flow.verifyError}

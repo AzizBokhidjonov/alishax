@@ -44,9 +44,22 @@ export function AppShell({ children }: { children: ReactNode }) {
           id="app-sidebar"
           aria-label={t("nav.sidebar")}
           className={cn(
-            // `z-40` — yopishqoq yuqori panel `z-30` da; chekkadagi yig'ish tugmasi
-            // uning tagida qolib ketmasligi uchun panel undan yuqorida turadi.
-            "relative z-40 hidden shrink-0 flex-col border-r border-border bg-card lg:flex",
+            /*
+              `sticky top-0` + `h-screen` — panel EKRAN balandligida qoladi va
+              sahifa bilan birga surilmaydi.
+
+              Ilgari u shunchaki `relative` edi va `min-h-screen` konteynerning
+              bolasi sifatida sahifa bo'yiga cho'zilardi. Natijada `SidebarContent`
+              ichidagi `flex-1 overflow-y-auto` hech qachon ishga tushmasdi:
+              scroll qilinadigan yagona narsa sahifaning O'ZI edi, shuning uchun
+              logotip ham, pastdagi foydalanuvchi bloki ham yuqoriga chiqib
+              ko'rinmay qolardi. Balandlik ekranga bog'langach, menyu panel
+              ichida suriladi, logotip va foydalanuvchi bloki esa joyida turadi.
+
+              `z-40` — yopishqoq yuqori panel `z-30` da; chekkadagi yig'ish tugmasi
+              uning tagida qolib ketmasligi uchun panel undan yuqorida turadi.
+            */
+            "sticky top-0 z-40 hidden h-screen shrink-0 flex-col border-r border-border bg-card lg:flex",
             ready && "transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
             collapsed ? "w-19" : "w-72",
           )}

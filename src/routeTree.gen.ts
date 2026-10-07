@@ -26,6 +26,7 @@ import { Route as OlibketishRouteImport } from './routes/olibketish'
 import { Route as OtaonalarRouteImport } from './routes/otaonalar'
 import { Route as ParolniTiklashRouteImport } from './routes/parolni-tiklash'
 import { Route as QarzlarRouteImport } from './routes/qarzlar'
+import { Route as QollanmaRouteImport } from './routes/qollanma'
 import { Route as RollarRouteImport } from './routes/rollar'
 import { Route as SaytRouteImport } from './routes/sayt'
 import { Route as SozlamalarRouteImport } from './routes/sozlamalar'
@@ -125,6 +126,11 @@ const QarzlarRoute = QarzlarRouteImport.update({
   path: '/qarzlar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const QollanmaRoute = QollanmaRouteImport.update({
+  id: '/qollanma',
+  path: '/qollanma',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RollarRoute = RollarRouteImport.update({
   id: '/rollar',
   path: '/rollar',
@@ -209,6 +215,7 @@ export interface FileRoutesByFullPath {
   '/otaonalar': typeof OtaonalarRouteWithChildren
   '/parolni-tiklash': typeof ParolniTiklashRoute
   '/qarzlar': typeof QarzlarRoute
+  '/qollanma': typeof QollanmaRoute
   '/rollar': typeof RollarRoute
   '/sayt': typeof SaytRoute
   '/sozlamalar': typeof SozlamalarRoute
@@ -241,6 +248,7 @@ export interface FileRoutesByTo {
   '/otaonalar': typeof OtaonalarRouteWithChildren
   '/parolni-tiklash': typeof ParolniTiklashRoute
   '/qarzlar': typeof QarzlarRoute
+  '/qollanma': typeof QollanmaRoute
   '/rollar': typeof RollarRoute
   '/sayt': typeof SaytRoute
   '/sozlamalar': typeof SozlamalarRoute
@@ -274,6 +282,7 @@ export interface FileRoutesById {
   '/otaonalar': typeof OtaonalarRouteWithChildren
   '/parolni-tiklash': typeof ParolniTiklashRoute
   '/qarzlar': typeof QarzlarRoute
+  '/qollanma': typeof QollanmaRoute
   '/rollar': typeof RollarRoute
   '/sayt': typeof SaytRoute
   '/sozlamalar': typeof SozlamalarRoute
@@ -308,6 +317,7 @@ export interface FileRouteTypes {
     | '/otaonalar'
     | '/parolni-tiklash'
     | '/qarzlar'
+    | '/qollanma'
     | '/rollar'
     | '/sayt'
     | '/sozlamalar'
@@ -340,6 +350,7 @@ export interface FileRouteTypes {
     | '/otaonalar'
     | '/parolni-tiklash'
     | '/qarzlar'
+    | '/qollanma'
     | '/rollar'
     | '/sayt'
     | '/sozlamalar'
@@ -372,6 +383,7 @@ export interface FileRouteTypes {
     | '/otaonalar'
     | '/parolni-tiklash'
     | '/qarzlar'
+    | '/qollanma'
     | '/rollar'
     | '/sayt'
     | '/sozlamalar'
@@ -405,6 +417,7 @@ export interface RootRouteChildren {
   OtaonalarRoute: typeof OtaonalarRouteWithChildren
   ParolniTiklashRoute: typeof ParolniTiklashRoute
   QarzlarRoute: typeof QarzlarRoute
+  QollanmaRoute: typeof QollanmaRoute
   RollarRoute: typeof RollarRoute
   SaytRoute: typeof SaytRoute
   SozlamalarRoute: typeof SozlamalarRoute
@@ -535,6 +548,13 @@ declare module '@tanstack/react-router' {
       path: '/qarzlar'
       fullPath: '/qarzlar'
       preLoaderRoute: typeof QarzlarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/qollanma': {
+      id: '/qollanma'
+      path: '/qollanma'
+      fullPath: '/qollanma'
+      preLoaderRoute: typeof QollanmaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/rollar': {
@@ -696,6 +716,7 @@ const rootRouteChildren: RootRouteChildren = {
   OtaonalarRoute: OtaonalarRouteWithChildren,
   ParolniTiklashRoute: ParolniTiklashRoute,
   QarzlarRoute: QarzlarRoute,
+  QollanmaRoute: QollanmaRoute,
   RollarRoute: RollarRoute,
   SaytRoute: SaytRoute,
   SozlamalarRoute: SozlamalarRoute,

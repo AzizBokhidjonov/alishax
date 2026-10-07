@@ -105,6 +105,7 @@ export function PaymentsPage() {
         />
         <div className="min-w-60">
           <ChildPicker
+            permission="payment:read"
             label={t("payments.columns.child")}
             value={childId}
             onChange={(value) => {

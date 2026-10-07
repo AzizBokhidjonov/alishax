@@ -2,6 +2,9 @@ import { api, requestExport, type QueryParams } from "../http";
 import { toPage } from "../types";
 import type {
   AssignChildTariffDto,
+  ChargeLedgerEntry,
+  CreateAdjustmentDto,
+  EndChildTariffDto,
   BillingExplain,
   BillingRules,
   BillingRun,
@@ -38,6 +41,9 @@ export const tariffsApi = {
   ofChild: (childId: Id) => api.get<ChildTariff[]>(`/children/${childId}/tariffs`),
   assign: (childId: Id, dto: AssignChildTariffDto) =>
     api.post<ChildTariff>(`/children/${childId}/tariffs`, dto),
+  /** Biriktirishni muddatidan oldin yopish — o'chirish EMAS. */
+  end: (childId: Id, assignmentId: Id, dto: EndChildTariffDto) =>
+    api.patch<ChildTariff>(`/children/${childId}/tariffs/${assignmentId}`, dto),
 };
 
 export const discountsApi = {
@@ -68,6 +74,20 @@ export const billingApi = {
   simulate: (dto: SimulateBillingDto) =>
     api.post<SimulateBillingResult>("/billing-rules/simulate", dto),
 
+  /**
+   * Yurishlar ro'yxati — YARIM QOLGAN ishni tiklash uchun (§5, Monthly billing).
+   * Oldindan ko'rish serverda saqlanadi, ya'ni sahifa yopilsa ham yo'qolmaydi.
+   */
+  async runs(
+    params: { periodId?: string; status?: string } & ListParams = {},
+  ): Promise<Paginated<BillingRun>> {
+    const response = await api.get<Paginated<BillingRun> | BillingRun[]>(
+      "/billing-runs",
+      params as QueryParams,
+    );
+    return toPage(response);
+  },
+
   /** Hech narsa yozmaydigan oldindan ko'rish. */
   preview: (year: number, month: number) => api.post<BillingRun>("/billing-runs", { year, month }),
   run: (id: Id) => api.get<BillingRun>(`/billing-runs/${id}`),
@@ -92,6 +112,31 @@ export const chargesApi = {
   },
   ofChild: (childId: Id) => api.get<Charge[]>(`/children/${childId}/charges`),
   createManual: (dto: CreateManualChargeDto) => api.post<Charge>("/charges", dto),
+
+  /**
+   * Qo'lda debet/kredit tuzatish. Naqd qaytarish EMAS.
+   * `charge:generate` VA `charge:reverse` — ikkalasi ham kerak.
+   */
+  adjust: (dto: CreateAdjustmentDto) => api.post<Charge>("/charges/adjustments", dto),
+
+  /** To'liq, faqat qo'shiladigan daftarcha: tuzatishlar va qarshi satrlar bilan. */
+  async ledger(childId: Id, params: ListParams = {}): Promise<Paginated<ChargeLedgerEntry>> {
+    const response = await api.get<Paginated<ChargeLedgerEntry> | ChargeLedgerEntry[]>(
+      `/children/${childId}/charge-ledger`,
+      params as QueryParams,
+    );
+    return toPage(response);
+  },
+
+  /**
+   * Davomat tuzatilgandan keyin oyni qayta hisoblash.
+   *
+   * Natija uch xil bo'lishi mumkin: ochiq davrdagi hisob qaytarilib qayta
+   * yoziladi, keyingi ochiq davrga tuzatish qo'shiladi, yoki qo'lda hal
+   * qilish kerak bo'lgan ish paydo bo'ladi — buni javobdagi holat aytadi.
+   */
+  recalculate: (childId: Id, year: number, month: number) =>
+    api.post<BillingRun>(`/children/${childId}/recalculate-billing`, { year, month }),
   /** O'chirmaydi — `sign=-1` qarshi satr qo'shadi. */
   reverse: (id: Id, reason: string) => api.post<Charge>(`/charges/${id}/reverse`, { reason }),
 };

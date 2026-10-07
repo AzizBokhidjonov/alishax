@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { AlertCircle, Phone, ShieldCheck, ShieldX } from "lucide-react";
-import type { PickupVerifyResult } from "@/api";
+import type { PickupRecipient, PickupVerifyResult } from "@/api";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { AuthAvatarImage } from "@/components/common/AuthImage";
@@ -10,7 +10,8 @@ import { formatDate, formatDateTime } from "@/lib/dates";
 
 interface PickupVerdictProps {
   childId: string;
-  personId: string;
+  /** Teglangan qabul qiluvchi — tanlanmaguncha `null`. */
+  recipient: PickupRecipient | null;
   data?: PickupVerifyResult;
   isLoading: boolean;
   error: unknown;
@@ -26,7 +27,7 @@ interface PickupVerdictProps {
  *     «RUXSAT YO'Q» deb chizilardi va qabulxona serverni tekshirmagan holni
  *     rasmiy taqiq deb o'qishi mumkin edi.
  */
-export function PickupVerdict({ childId, personId, data, isLoading, error }: PickupVerdictProps) {
+export function PickupVerdict({ childId, recipient, data, isLoading, error }: PickupVerdictProps) {
   const { t } = useTranslation();
   /*
     Vasiylar ikki holda kerak: rad etilganda — qo'ng'iroq qilish uchun,
@@ -37,7 +38,7 @@ export function PickupVerdict({ childId, personId, data, isLoading, error }: Pic
     Boolean(error) || data?.allowed === false || data?.person?.permissionType === "temporary";
   const guardians = useChildGuardians(needsGuardians ? childId : "");
 
-  if (!childId || !personId) {
+  if (!childId || !recipient) {
     return <p className="text-sm text-muted-foreground">{t("pickup.verify.selectBoth")}</p>;
   }
 
@@ -75,12 +76,17 @@ export function PickupVerdict({ childId, personId, data, isLoading, error }: Pic
 
   if (data?.allowed) {
     const person = data.person;
+    /*
+      Ism uchun eng ishonchli manba — serverning `pickupName` i: vasiy
+      yo'lida `person` qisqartirilgan bo'lishi mumkin (Handbook, 2026-10-04).
+    */
+    const name = data.pickupName ?? person?.fullName ?? "";
     return (
       <>
         {/* Surat — tekshiruvning o'zi, shuning uchun eng katta element. */}
         <Avatar className="h-52 w-52 border-2 border-st-ok-border">
           <AuthAvatarImage fileId={person?.photoFileId} src={data.photoUrl ?? person?.photoUrl} />
-          <AvatarFallback className="text-4xl">{(person?.fullName ?? "?")[0]}</AvatarFallback>
+          <AvatarFallback className="text-4xl">{(name || "?")[0]}</AvatarFallback>
         </Avatar>
 
         <div className="flex w-full items-center justify-center gap-2 rounded-xl bg-st-ok-fg px-4 py-2 text-xl font-extrabold text-white">
@@ -88,7 +94,7 @@ export function PickupVerdict({ childId, personId, data, isLoading, error }: Pic
           {t("pickup.verify.allowed")}
         </div>
 
-        <div className="font-medium">{person?.fullName}</div>
+        <div className="font-medium">{name}</div>
         {person?.relationship ? (
           <div className="text-sm text-muted-foreground">{person.relationship}</div>
         ) : null}

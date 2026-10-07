@@ -10,6 +10,7 @@ import { announcements, notifications } from "./comms";
 import { users, roles } from "./admin";
 import { settings, reports, imports, audit } from "./system";
 import { website } from "./website";
+import { guide } from "./guide";
 
 export const uz = {
   common,
@@ -42,4 +43,5 @@ export const uz = {
   imports,
   audit,
   website,
+  guide,
 };

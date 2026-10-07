@@ -15,23 +15,24 @@ import { Money } from "@/components/common/Money";
 import { QueryState } from "@/components/common/QueryState";
 import { usePermissions } from "@/auth/auth-context";
 import { P } from "@/config/permissions";
-import { formatDate } from "@/lib/dates";
+import { formatDate, todayIso } from "@/lib/dates";
 import { formatBasisPoints } from "@/lib/money";
 import {
-  useChildCharges,
   useChildTariffs,
   useDiscounts,
+  useEndChildTariff,
   useRevokeDiscount,
 } from "@/features/finance/api";
 import { AssignTariffDialog, DiscountDialog } from "./ChildFinanceDialogs";
+import { ChildLedgerCard } from "./ChildLedgerCard";
 
 export function ChildFinanceTab({ childId }: { childId: string }) {
   const { t } = useTranslation();
   const { can } = usePermissions();
   const tariffs = useChildTariffs(childId);
   const discounts = useDiscounts(childId);
-  const charges = useChildCharges(childId);
   const revokeDiscount = useRevokeDiscount(childId);
+  const endTariff = useEndChildTariff(childId);
 
   return (
     <div className="space-y-4">
@@ -55,6 +56,7 @@ export function ChildFinanceTab({ childId }: { childId: string }) {
                   <TableHead>{t("tariffs.columns.amount")}</TableHead>
                   <TableHead>{t("tariffs.assign.effectiveFrom")}</TableHead>
                   <TableHead>{t("tariffs.assign.effectiveTo")}</TableHead>
+                  <TableHead className="text-right">{t("common.table.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -68,6 +70,30 @@ export function ChildFinanceTab({ childId }: { childId: string }) {
                     </TableCell>
                     <TableCell>{formatDate(item.effectiveFrom)}</TableCell>
                     <TableCell>{formatDate(item.effectiveTo)}</TableCell>
+                    <TableCell className="text-right">
+                      {/*
+                        Biriktirishni muddatidan oldin yopish. Allaqachon
+                        yopilganida tugma ko'rsatilmaydi — `effectiveTo` bor
+                        biriktirish o'z muddatiga ega va qayta yopilmaydi.
+                      */}
+                      {can(P.tariffManage) && !item.effectiveTo ? (
+                        <ConfirmDialog
+                          trigger={
+                            <Button size="sm" variant="ghost">
+                              {t("tariffs.assign.end")}
+                            </Button>
+                          }
+                          title={t("tariffs.assign.end")}
+                          description={t("tariffs.assign.endHint")}
+                          onConfirm={() =>
+                            endTariff.mutate({
+                              assignmentId: item.id,
+                              effectiveTo: todayIso(),
+                            })
+                          }
+                        />
+                      ) : null}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -137,54 +163,7 @@ export function ChildFinanceTab({ childId }: { childId: string }) {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">{t("charges.title")}</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <QueryState
-            isLoading={charges.isLoading}
-            error={charges.error}
-            isEmpty={(charges.data ?? []).length === 0}
-            emptyTitle={t("charges.empty")}
-            rows={2}
-          >
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("charges.columns.period")}</TableHead>
-                  <TableHead>{t("charges.columns.description")}</TableHead>
-                  <TableHead>{t("charges.columns.amount")}</TableHead>
-                  <TableHead>{t("charges.columns.paid")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(charges.data ?? []).map((charge) => (
-                  <TableRow key={charge.id}>
-                    <TableCell>
-                      {charge.period ? `${charge.period.month}.${charge.period.year}` : "—"}
-                    </TableCell>
-                    <TableCell>
-                      {charge.description ?? "—"}
-                      {charge.sign === -1 ? (
-                        <Badge tone="danger" className="ml-2">
-                          {t("charges.reversed")}
-                        </Badge>
-                      ) : null}
-                    </TableCell>
-                    <TableCell>
-                      <Money value={charge.amountTiyin} colored />
-                    </TableCell>
-                    <TableCell>
-                      <Money value={charge.paidTiyin ?? "0"} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </QueryState>
-        </CardContent>
-      </Card>
+      <ChildLedgerCard childId={childId} />
     </div>
   );
 }

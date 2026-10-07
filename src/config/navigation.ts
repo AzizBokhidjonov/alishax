@@ -21,6 +21,7 @@ import {
   Globe,
   Upload,
   ScrollText,
+  BookOpen,
   type LucideIcon,
 } from "lucide-react";
 import { P } from "./permissions";
@@ -149,6 +150,16 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { to: "/hisobotlar", labelKey: "nav.reports", icon: BarChart3, permissions: [P.reportRead] },
     ],
+  },
+  {
+    /*
+      Qo'llanma — menyudagi YAGONA element, u ruxsatga bog'liq emas.
+      Sabab oddiy: u aynan «menda qanday huquq bor va nima qila olaman»
+      degan savolga javob beradi, ya'ni huquqi eng kam xodimga eng kerak.
+      Ichidagi ruxsat kalitlari maxfiy emas — haqiqiy himoya serverda.
+    */
+    titleKey: "nav.sections.help",
+    items: [{ to: "/qollanma", labelKey: "nav.guide", icon: BookOpen, permissions: [] }],
   },
   {
     titleKey: "nav.sections.admin",

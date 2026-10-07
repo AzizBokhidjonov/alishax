@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { FormDialog, Field } from "@/components/forms/FormDialog";
 import { SelectField } from "@/components/common/SelectField";
 import { MoneyInput } from "@/components/common/MoneyInput";
-import { ChildPicker, GuardianPicker } from "@/components/common/EntityPicker";
+import { ChildPicker, PayerPicker } from "@/components/common/EntityPicker";
 import { FileUploadField } from "@/components/common/FileUploadField";
 import { paymentSchema, type PaymentFormValues } from "@/components/forms/schemas";
 import { useEntityForm } from "@/hooks/use-entity-form";
@@ -103,14 +103,30 @@ export function PaymentFormDialog({ childId }: { childId?: string }) {
       <div className="space-y-3">
         {childId ? null : (
           <ChildPicker
+            permission="payment:create"
             label={t("payments.form.child")}
             value={selectedChild}
-            onChange={(value) => setValue("childId", value, { shouldValidate: true })}
+            onChange={(value) => {
+              setValue("childId", value, { shouldValidate: true });
+              /*
+                Bola almashdi — to'lovchi va qo'lda taqsimot YARAMAYDI:
+                ular oldingi bolaning yozuvlariga tegishli. Tozalanmasa,
+                boshqa bolaning ota-onasi to'lovchi bo'lib qolardi (§0).
+              */
+              setValue("payerGuardianId", undefined);
+              setAllocations({});
+              setManual(false);
+            }}
             error={error("childId")}
           />
         )}
-        <GuardianPicker
+        {/*
+          To'lovchi FAQAT shu bolaga bog'langanlar ichidan tanlanadi.
+          Ilgari bu butun vasiylar katalogi edi.
+        */}
+        <PayerPicker
           label={t("payments.form.payer")}
+          childId={selectedChild}
           value={watch("payerGuardianId") ?? ""}
           onChange={(value) => setValue("payerGuardianId", value)}
         />

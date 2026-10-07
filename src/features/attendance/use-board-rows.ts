@@ -1,87 +1,98 @@
 import { useMemo } from "react";
-import { LIST_LIMIT_MAX, type AttendanceRecord } from "@/api";
-import { useChildren } from "@/features/children/api";
+import { useQuery } from "@tanstack/react-query";
+import { attendanceApi, type AttendanceBoardItem, type AttendanceRecord } from "@/api";
+import { ATTENDANCE_POLL_MS } from "@/config/constants";
+import { qk } from "@/lib/query";
 import { todayIso } from "@/lib/dates";
-import { useAttendanceToday } from "./api";
 
 /**
- * Taxta qatorlari: BOLALAR REYESTRI + bugungi davomat yozuvlari.
+ * Taxta qatorlari — `GET /attendance/board` dan.
  *
- * `GET /attendance/today` faqat yozuvi BOR bolalarni qaytaradi. Ertalab,
- * hech kim belgilanmagan paytda u bo'sh bo'ladi — ya'ni davomat qilish uchun
- * ro'yxatda hech kim chiqmaydi. Yozuv esa aynan shu ekranda YARATILADI,
- * demak asos yozuvlar emas, kutilayotgan bolalar ro'yxati bo'lishi kerak.
+ * Ilgari bu ikki so'rovdan qo'lda yig'ilardi (`/children` reyestri +
+ * `/attendance/today`), chunki serverda to'liq reyestr endpointi yo'q edi.
+ * Endi u bor va bitta so'rov yetadi: server kutilayotgan BARCHA bolani
+ * qaytaradi va yozuvi yo'qiga `attendance: null` qo'yadi.
  *
- * Shuning uchun bu yerda reyestr olinadi va bugungi yozuvlar ustiga
- * qo'yiladi: yozuvi yo'q bola «belgilanmagan» bo'lib turadi va uni bir
- * teginishda belgilash mumkin.
+ * Eski yechimning kamchiligi shunchaki ikki so'rov emas edi: reyestr
+ * sahifalangan (`limit=200`) va katta bog'chada oxirgi bolalar taxtaga
+ * tushmasligi mumkin edi. Serverning reyestri bunday cheklovga ega emas.
+ *
+ * `attendance: null` — «YOZILMAGAN», «kelmagan» EMAS. Shu uchinchi holat
+ * `AttendanceRecord` ga `status: undefined` bo'lib o'tadi va kartochka uni
+ * «belgilanmagan» deb chizadi.
  */
+const displayName = (child: AttendanceBoardItem["child"]): string =>
+  child.fullName?.trim() ||
+  [child.lastName, child.firstName].filter(Boolean).join(" ").trim() ||
+  "";
+
+/** Taxta elementini interfeys ishlatadigan qatorga aylantirish. */
+export function boardItemToRow(item: AttendanceBoardItem, date: string): AttendanceRecord {
+  const name = displayName(item.child);
+  if (item.attendance) {
+    /*
+      Yetishmayotgan maydonlar bola obyektidan to'ldiriladi: davomat
+      javobida guruh nomi har doim kelmaydi va usiz endigina belgilangan
+      bola guruhidan tushib «Guruhsiz» bo'limiga sakrab ketardi.
+    */
+    return {
+      ...item.attendance,
+      childId: item.attendance.childId ?? item.child.id,
+      childName: item.attendance.childName ?? name,
+      groupId: item.attendance.groupId ?? item.child.groupId,
+      groupName: item.attendance.groupName ?? item.child.groupName,
+    };
+  }
+
+  /*
+    Yozuvsiz bola. `id` sun'iy va faqat React kaliti sifatida ishlatiladi:
+    amallar `childId` va sana bilan ketadi, shuning uchun bu qiymat hech
+    qachon serverga tushmaydi.
+  */
+  return {
+    id: `pending:${item.child.id}`,
+    childId: item.child.id,
+    childName: name,
+    groupId: item.child.groupId,
+    groupName: item.child.groupName,
+    date,
+  };
+}
+
+export function useAttendanceBoard(params: { groupId?: string; branchId?: string }) {
+  return useQuery({
+    queryKey: qk.attendanceBoard(params),
+    queryFn: () => attendanceApi.board(params),
+    // SSE yo'q — taxta 25 soniyada va oynaga qaytilganda yangilanadi (§5.1).
+    refetchInterval: ATTENDANCE_POLL_MS,
+    refetchOnWindowFocus: true,
+    /*
+      Guruh almashganda eski guruhning qatorlari DARHOL yo'qoladi: oldingi
+      javobni ushlab turish boshqa guruhning bolalarini ko'rsatib qo'yadi va
+      qabulxona noto'g'ri bolani belgilashi mumkin (§0, cross-screen).
+      Shuning uchun `placeholderData` ataylab berilmagan.
+    */
+  });
+}
+
 export function useBoardRows(params: { groupId?: string; branchId?: string }): {
   rows: AttendanceRecord[];
   isLoading: boolean;
   error: unknown;
   refetch: () => void;
 } {
-  const attendance = useAttendanceToday(params);
-  const roster = useChildren({
-    limit: LIST_LIMIT_MAX,
-    groupId: params.groupId,
-    branchId: params.branchId,
-    status: "active",
-  });
-
+  const board = useAttendanceBoard(params);
   const today = todayIso();
 
   const rows = useMemo<AttendanceRecord[]>(() => {
-    const byChild = new Map((attendance.data ?? []).map((row) => [row.childId, row]));
-    const merged: AttendanceRecord[] = [];
-
-    for (const child of roster.data?.data ?? []) {
-      const record = byChild.get(child.id);
-      if (record) {
-        /*
-          Yetishmayotgan maydonlar reyestrdan to'ldiriladi: server javobida
-          guruh nomi har doim ham kelmaydi, optimistik qatorda esa umuman
-          bo'lmaydi. Usiz endigina belgilangan bola guruhidan tushib,
-          «Guruhsiz» bo'limiga sakrab ketardi.
-        */
-        merged.push({
-          ...record,
-          groupId: record.groupId ?? child.groupId,
-          groupName: record.groupName ?? child.groupName,
-          childName:
-            record.childName ?? [child.lastName, child.firstName].filter(Boolean).join(" ").trim(),
-        });
-        byChild.delete(child.id);
-        continue;
-      }
-      /*
-        Yozuvsiz bola. `id` sun'iy va faqat React kaliti sifatida ishlatiladi:
-        amallar `childId` va sana bilan ketadi, shuning uchun bu qiymat hech
-        qachon serverga tushmaydi.
-      */
-      merged.push({
-        id: `pending:${child.id}`,
-        childId: child.id,
-        childName: [child.lastName, child.firstName].filter(Boolean).join(" ").trim(),
-        groupId: child.groupId,
-        groupName: child.groupName,
-        date: today,
-      });
-    }
-
-    // Reyestrda yo'q, lekin bugun yozuvi bor bola ham tushib qolmasin.
-    for (const record of byChild.values()) merged.push(record);
-    return merged;
-  }, [attendance.data, roster.data, today]);
+    const date = board.data?.date ?? today;
+    return (board.data?.data ?? []).map((item) => boardItemToRow(item, date));
+  }, [board.data, today]);
 
   return {
     rows,
-    isLoading: attendance.isLoading || roster.isLoading,
-    error: attendance.error ?? roster.error,
-    refetch: () => {
-      void attendance.refetch();
-      void roster.refetch();
-    },
+    isLoading: board.isLoading,
+    error: board.error,
+    refetch: () => void board.refetch(),
   };
 }

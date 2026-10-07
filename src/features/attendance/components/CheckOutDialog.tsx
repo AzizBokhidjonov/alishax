@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { PickupPersonPicker } from "@/features/pickup/components/PickupPersonPicker";
+import { PickupRecipientPicker } from "@/features/pickup/components/PickupRecipientPicker";
 import { PickupVerdict } from "@/features/pickup/components/PickupVerdict";
 import { usePickupCheckOut } from "@/features/pickup/use-pickup-checkout";
 
@@ -30,7 +30,7 @@ interface CheckOutDialogProps {
  *
  * Oyna o'z mantig'ini yuritmaydi: tanlash, tekshirish va tasdiqlash
  * «Olib ketish nazorati» sahifasi bilan BITTA kod (`usePickupCheckOut`,
- * `PickupPersonPicker`, `PickupVerdict`). Ilgari bu yerda hammasining
+ * `PickupRecipientPicker`, `PickupVerdict`). Ilgari bu yerda hammasining
  * kichraytirilgan nusxasi turardi — 56px surat va kichkina lavha. Ikki
  * joyda ikki xil ko'rinish bo'lsa, birida qabul qilingan qaror ikkinchisida
  * boshqacha o'qiladi.
@@ -66,12 +66,12 @@ export function CheckOutDialog({ childId, childName, className }: CheckOutDialog
           <DialogDescription>{t("pickup.verify.hint")}</DialogDescription>
         </DialogHeader>
 
-        {!flow.personId ? (
+        {!flow.recipient ? (
           // 1-qadam: kim olib ketyapti.
-          <PickupPersonPicker
+          <PickupRecipientPicker
             childId={childId}
-            value={flow.personId}
-            onChange={flow.selectPerson}
+            value={flow.recipient}
+            onChange={flow.selectRecipient}
             className="max-h-96 overflow-y-auto"
           />
         ) : (
@@ -79,7 +79,7 @@ export function CheckOutDialog({ childId, childName, className }: CheckOutDialog
           <div className="flex flex-col items-center gap-3 text-center">
             <PickupVerdict
               childId={childId}
-              personId={flow.personId}
+              recipient={flow.recipient}
               data={flow.verdict}
               isLoading={flow.verify.isLoading}
               error={flow.verifyError}
@@ -99,7 +99,7 @@ export function CheckOutDialog({ childId, childName, className }: CheckOutDialog
         )}
 
         <DialogFooter>
-          {flow.personId ? (
+          {flow.recipient ? (
             <>
               <Button variant="ghost" onClick={flow.reset}>
                 {t("common.actions.back")}

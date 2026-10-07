@@ -43,7 +43,13 @@ export interface LandingBlock {
   pageId?: Id;
   type: string;
   position: number;
-  isVisible: boolean;
+  /*
+    Server hujjatida standart qiymat `true` (`CreateBlockDto.isVisible.default`).
+    Javobda maydon umuman bo'lmasligi ham mumkin, shuning uchun u IXTIYORIY:
+    `undefined` ni «yashirilgan» deb o'qish butun sahifani xato belgilaydi.
+    O'qishda `isBlockVisible()` ishlatiladi.
+  */
+  isVisible?: boolean;
   content: BlockContent;
   /** Serverda hisoblanadi — FAQAT o'qish uchun, qaytarib yuborilmaydi (§10.9). */
   fileIds?: Id[];

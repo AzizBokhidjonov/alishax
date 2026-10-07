@@ -7,6 +7,18 @@ export const website = {
     "Chop etilmagan o'zgarishlar bor. Saqlash saytni yangilamaydi — «Chop etish» tugmasini bosing.",
   dirtyNoPublish:
     "Chop etilmagan o'zgarishlar bor. Chop etish huquqi bo'lgan xodim uni jonli saytga chiqaradi.",
+  publicStatus: {
+    ok: "Ommaviy sahifa ishlayapti — {{count}} ta blok qaytdi.",
+    neverPublished: "Ommaviy sahifa hali chop etilmagan.",
+    unreachable: "Chop etilgan, lekin ommaviy manzilda topilmadi.",
+    check: "Tekshirish",
+    empty: "bo'sh",
+    foundCode:
+      "Sahifa «{{code}}» kodi bilan topildi, lekin bu kod sozlamada yo'q — ommaviy sayt uni ko'rmaydi. `.env` ga `VITE_LANDING_TENANT_CODE={{code}}` yozing va frontendni qayta ishga tushiring.",
+    hintPublish: "«Chop etish» tugmasini bosgandan keyin sahifa ommaviy manzilda paydo bo'ladi.",
+    hintTenant:
+      "Sahifa chop etilgan, ammo ommaviy so'rov uni topa olmayapti. Sabab deyarli har doim bitta: bog'cha kodi sozlanmagan. Hozirgi qiymat: «{{code}}». Frontendda `VITE_LANDING_TENANT_CODE` ni to'g'ri kod bilan to'ldiring va qayta yig'ing, yoki backendda `LANDING_DEFAULT_TENANT_CODE` ni o'rnating.",
+  },
   tabs: {
     blocks: "Bloklar",
     seo: "SEO",
@@ -63,7 +75,7 @@ export const website = {
     people: "Xodimlar",
     plans: "Tariflar",
     caption: "Izoh",
-    icon: "Ikonka",
+    icon: "Ikonka (emoji, masalan 🎨)",
     name: "Nomi",
     role: "Lavozimi",
     bio: "Qisqacha",

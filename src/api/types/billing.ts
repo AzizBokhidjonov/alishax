@@ -83,6 +83,55 @@ export interface Charge {
   createdAt?: IsoDateTime;
 }
 
+/**
+ * Qo'lda tuzatish — oilaga kredit yoki qo'shimcha qarz (§5, Adjustments).
+ *
+ * `amountTiyin` har doim MUSBAT, ishora esa alohida: `-1` oilaning
+ * foydasiga (chegirma/kredit), `+1` qarz qo'shadi. Ikkala ruxsat ham kerak:
+ * `charge:generate` va `charge:reverse`.
+ *
+ * Bu naqd pul QAYTARISH emas — qaytarishning alohida jarayoni yo'q.
+ */
+export interface CreateAdjustmentDto {
+  childId: Id;
+  periodId: Id;
+  /** `-1` — oilaga kredit, `+1` — qarz qo'shiladi. */
+  sign: -1 | 1;
+  /** Musbat butun tiyin satri. */
+  amountTiyin: Tiyin;
+  /** Kamida 10 belgi — serverda ham tekshiriladi. */
+  reason: string;
+  dueDate?: IsoDate;
+}
+
+/**
+ * Daftarchaning BITTA satri (`GET /children/{id}/charge-ledger`).
+ *
+ * `/charges` dan farqi: u faqat joriy MUSBAT hisoblarni ko'rsatadi, daftarcha
+ * esa to'liq va faqat qo'shiladigan tarix — tuzatishlar va qarshi satrlar
+ * bilan. Shuning uchun bu yerda `sign` va «qaysi satrni qaytaradi» havolasi
+ * bor va hech narsa o'chirilmaydi.
+ */
+export interface ChargeLedgerEntry {
+  id: Id;
+  childId: Id;
+  periodId?: Id;
+  period?: { year: number; month: number };
+  kind?: string;
+  description?: string;
+  amountTiyin: Tiyin;
+  sign?: 1 | -1;
+  /** Qaysi yozuvni teskari qiladi — juftlab ko'rsatish uchun. */
+  reversesChargeId?: Id | null;
+  reversedAt?: IsoDateTime | null;
+  reversalReason?: string;
+  /** Tuzatish satrining sababi. */
+  reason?: string;
+  dueDate?: IsoDate;
+  createdAt?: IsoDateTime;
+  createdByName?: string;
+}
+
 export interface CreateManualChargeDto {
   childId: Id;
   periodId: Id;

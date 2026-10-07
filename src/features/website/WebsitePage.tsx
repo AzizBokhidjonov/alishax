@@ -24,6 +24,7 @@ import { formatDateTime } from "@/lib/dates";
 import { BlockList } from "./components/BlockList";
 import { SeoPanel } from "./components/SeoPanel";
 import { VersionsPanel } from "./components/VersionsPanel";
+import { PublicStatusPanel } from "./components/PublicStatusPanel";
 import { useBlockTypes, useLandingDraft, usePublishLanding } from "./api";
 
 /**
@@ -149,6 +150,16 @@ export function WebsitePage() {
           {canPublish ? t("website.dirty") : t("website.dirtyNoPublish")}
         </div>
       ) : null}
+
+      {/*
+        Chop etish va JONLI SAYTDA KO'RINISH — ikki boshqa narsa: birinchisi
+        shu ilovada, ikkinchisi ommaviy manzilda sozlamaga bog'liq. Panel
+        ikkinchisini tekshiradi.
+      */}
+      <PublicStatusPanel
+        publishedVersion={draft.data?.publishedVersion ?? null}
+        slug={draft.data?.slug}
+      />
 
       <QueryState
         isLoading={draft.isLoading}

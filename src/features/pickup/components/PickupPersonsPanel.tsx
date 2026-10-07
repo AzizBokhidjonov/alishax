@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { permissionHolderName } from "@/api";
 import { Ban } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AuthAvatarImage } from "@/components/common/AuthImage";
@@ -65,13 +66,18 @@ export function PickupPersonsPanel({
             emptyDescription={t("pickup.persons.emptyHint")}
             rows={1}
           >
-            {(active.data ?? []).map((person) => (
+            {/*
+              Ruxsat egasi ro'yxatdagi shaxs ham, BIR MARTALIK ism ham
+              bo'lishi mumkin — `permissionHolderName()` ikkalasini ham
+              o'qiydi (Handbook, 2026-10-04).
+            */}
+            {(active.data ?? []).map((permission) => (
               <span
-                key={person.id}
+                key={permission.id}
                 className="rounded-xl border border-st-ok-border bg-st-ok-soft px-3 py-1.5 text-sm text-st-ok-fg"
               >
-                {person.fullName}
-                {person.validTo ? ` · ${formatDate(person.validTo)}` : ""}
+                {permissionHolderName(permission) || t("pickup.persons.unnamed")}
+                {permission.validTo ? ` · ${formatDate(permission.validTo)}` : ""}
               </span>
             ))}
           </QueryState>

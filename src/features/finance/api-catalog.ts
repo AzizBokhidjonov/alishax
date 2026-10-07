@@ -55,6 +55,22 @@ export function useAssignTariff(childId: string) {
   });
 }
 
+/**
+ * Biriktirishni muddatidan oldin yopish.
+ *
+ * O'chirish EMAS: mavjud hisoblar o'z hisob-kitob suratini saqlaydi,
+ * biriktirish esa shu sanadan keyin qo'llanmaydi.
+ */
+export function useEndChildTariff(childId: string) {
+  const { t } = useTranslation();
+  return useApiMutation({
+    mutationFn: ({ assignmentId, effectiveTo }: { assignmentId: string; effectiveTo: string }) =>
+      tariffsApi.end(childId, assignmentId, { effectiveTo }),
+    successMessage: t("tariffs.assign.ended"),
+    invalidate: [qk.childTariffs(childId), qk.child(childId)],
+  });
+}
+
 /* -------------------------------------------------------------- chegirmalar */
 
 export function useDiscounts(childId: string) {
@@ -163,6 +179,21 @@ export function useCommitBilling() {
       billingApi.commit(id, idempotencyKey),
     successMessage: t("billing.commit.done"),
     invalidate: [["charges"], ["debts"], ["periods"]],
+  });
+}
+
+/**
+ * Hisoblash yurishlari ro'yxati.
+ *
+ * Oldindan ko'rish SERVERDA saqlanadi, ya'ni yarim qolgan ish sahifa
+ * yopilganda yo'qolmaydi — uni shu ro'yxatdan topib davom ettirish mumkin
+ * (§5, Monthly billing).
+ */
+export function useBillingRuns(params: { periodId?: string; status?: string } = {}) {
+  return useQuery({
+    queryKey: ["billing-runs", params],
+    queryFn: () => billingApi.runs(params),
+    placeholderData: (previous) => previous,
   });
 }
 

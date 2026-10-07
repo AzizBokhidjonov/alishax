@@ -71,6 +71,7 @@ export function ChargesPage() {
       <FilterBar>
         <div className="min-w-60">
           <ChildPicker
+            permission="charge:read"
             label={t("charges.columns.child")}
             value={childId}
             onChange={(value) => {

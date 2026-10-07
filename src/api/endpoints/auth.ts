@@ -1,6 +1,9 @@
 import { api } from "../http";
+import { isApiError } from "../error";
+import { bootstrapToMe } from "../types";
 import { setAccessToken } from "../token-store";
 import type {
+  BootstrapResponse,
   ChangePasswordDto,
   LoginDto,
   LoginResponse,
@@ -16,6 +19,32 @@ export const authApi = {
   },
 
   me: () => api.get<MeResponse>("/auth/me"),
+
+  /**
+   * Sessiya boshlanishidagi yagona so'rov (§3).
+   *
+   * Eski o'rnatmada bu endpoint YO'Q bo'lishi mumkin — o'shanda `404` keladi
+   * va chaqiruvchi `/auth/me` ga qaytadi (`AuthProvider`). Shu sababli bu
+   * yerda hech qanday himoya yo'q: qaror sessiya qatlamida.
+   */
+  bootstrap: () => api.get<BootstrapResponse>("/auth/bootstrap"),
+
+  /**
+   * Sessiyani tiklash: bootstrap, bo'lmasa `/auth/me`.
+   *
+   * Nega zaxira kerak: bootstrap backendning yangi relizida paydo bo'ldi va
+   * eski o'rnatmada `404` qaytaradi. Shu bitta endpoint yo'qligi uchun butun
+   * ilovaning ochilmay qolishi mumkin emas — ruxsatlar `/auth/me` da ham bor.
+   * Boshqa xato (401, tarmoq) esa YUTILMAYDI: u haqiqiy muammo.
+   */
+  async session(): Promise<MeResponse> {
+    try {
+      return bootstrapToMe(await authApi.bootstrap());
+    } catch (error) {
+      if (isApiError(error) && error.status === 404) return authApi.me();
+      throw error;
+    }
+  },
 
   async logout(): Promise<void> {
     try {

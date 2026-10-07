@@ -1,6 +1,7 @@
 import { api, type QueryParams } from "../http";
 import { toPage } from "../types";
 import type {
+  AttendanceBoard,
   AttendanceCalendarDay,
   AttendanceCorrection,
   AttendanceRecord,
@@ -24,6 +25,17 @@ export interface AttendanceListParams extends ListParams {
 }
 
 export const attendanceApi = {
+  /**
+   * Kunning TO'LIQ reyestri — taxtaning yagona to'g'ri manbasi.
+   *
+   * `/attendance/today` dan farqi: u faqat YOZUVI BOR bolalarni qaytaradi va
+   * ertalab bo'sh bo'ladi. Taxta esa belgilanmagan bolalarni ko'rsatishi
+   * kerak, chunki yozuv aynan shu ekranda yaratiladi. `attendance: null` —
+   * «yozilmagan», «kelmagan» emas.
+   */
+  board: (params: { groupId?: string; branchId?: string } = {}) =>
+    api.get<AttendanceBoard>("/attendance/board", params as QueryParams),
+
   today: (params: { groupId?: string; branchId?: string } = {}) =>
     api.get<AttendanceRecord[]>("/attendance/today", params as QueryParams),
 

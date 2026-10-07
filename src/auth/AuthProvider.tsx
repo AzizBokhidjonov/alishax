@@ -57,7 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       try {
-        const response = await authApi.me();
+        // Bootstrap — bitta so'rov; eski o'rnatmada `/auth/me` ga qaytadi.
+        const response = await authApi.session();
         if (!cancelled) applyMe(response);
       } catch {
         if (!cancelled) setStatus("anonymous");
@@ -71,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(
     async (login: string, password: string) => {
       await authApi.login({ login, password });
-      const response = await authApi.me();
+      const response = await authApi.session();
       applyMe(response);
       return response;
     },
@@ -87,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [clear]);
 
   const refreshMe = useCallback(async () => {
-    const response = await authApi.me();
+    const response = await authApi.session();
     applyMe(response);
   }, [applyMe]);
 

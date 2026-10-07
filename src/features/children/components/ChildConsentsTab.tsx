@@ -15,14 +15,13 @@ import { Badge } from "@/components/common/StatusBadge";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { QueryState } from "@/components/common/QueryState";
 import { SelectField } from "@/components/common/SelectField";
-import { GuardianPicker } from "@/components/common/EntityPicker";
 import { FileUploadField } from "@/components/common/FileUploadField";
 import { FormDialog } from "@/components/forms/FormDialog";
 import { consentSchema, type ConsentFormValues } from "@/components/forms/schemas";
 import { useEntityForm } from "@/hooks/use-entity-form";
 import { useFieldError } from "@/hooks/use-field-error";
 import { formatDate } from "@/lib/dates";
-import { useConsents, useRecordConsent, useRevokeConsent } from "../api";
+import { useChildGuardians, useConsents, useRecordConsent, useRevokeConsent } from "../api";
 
 const CONSENT_TYPES: ConsentType[] = [
   "personal_data",
@@ -34,6 +33,7 @@ const CONSENT_TYPES: ConsentType[] = [
 
 function ConsentFormDialog({ childId }: { childId: string }) {
   const { t } = useTranslation();
+  const guardians = useChildGuardians(childId);
   const record = useRecordConsent(childId);
 
   const form = useEntityForm<ConsentFormValues>({
@@ -63,10 +63,19 @@ function ConsentFormDialog({ childId }: { childId: string }) {
       pending={form.pending}
     >
       <div className="space-y-3">
-        <GuardianPicker
+        {/*
+          Rozilikni SHU bolaga bog'langan vasiy beradi — global katalog
+          emas: begona vasiyni rozilik bergan deb yozib qo'yish mumkin
+          bo'lmasligi kerak (§0, cross-screen).
+        */}
+        <SelectField
           label={t("children.consents.guardian")}
           value={watch("guardianId")}
           onChange={(value) => setValue("guardianId", value, { shouldValidate: true })}
+          options={(guardians.data ?? []).map((link) => ({
+            value: link.guardianId,
+            label: link.fullName ?? link.guardian?.fullName ?? link.guardianId,
+          }))}
           error={error("guardianId")}
         />
         <SelectField
