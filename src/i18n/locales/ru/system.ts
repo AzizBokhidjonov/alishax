@@ -7,6 +7,10 @@ export const settings = {
     security: "Безопасность",
   },
   form: {
+    invalidTime: "Введите время в формате ЧЧ:мм",
+    invalidDueDay: "Введите день месяца от 1 до 28",
+    bothHoursRequired: "Укажите начало и конец работы или очистите оба поля",
+    logoUnavailable: "Изменение логотипа пока недоступно",
     displayName: "Название организации",
     logo: "Логотип",
     address: "Адрес",

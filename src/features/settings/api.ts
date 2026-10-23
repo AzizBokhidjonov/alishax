@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
   settingsApi,
@@ -41,10 +41,15 @@ export function useHolidays(params: { year?: number; branchId?: string }) {
 
 export function useUpdateSettings() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   return useApiMutation({
-    mutationFn: (dto: UpdateSettingsDto) => settingsApi.update(dto),
+    mutationFn: async (dto: UpdateSettingsDto) => {
+      await queryClient.cancelQueries({ queryKey: qk.settings });
+      return settingsApi.update(dto);
+    },
     successMessage: t("settings.form.saved"),
-    invalidate: [qk.settings],
+    invalidate: [qk.bootstrap],
+    onSuccess: (settings) => queryClient.setQueryData(qk.settings, settings),
   });
 }
 
@@ -53,7 +58,7 @@ export function useCreateBranch() {
   return useApiMutation({
     mutationFn: (dto: CreateBranchDto) => settingsApi.createBranch(dto),
     successMessage: t("common.state.created"),
-    invalidate: [qk.branches],
+    invalidate: [qk.branches, qk.bootstrap],
   });
 }
 
@@ -63,7 +68,7 @@ export function useUpdateBranch() {
     mutationFn: ({ id, dto }: { id: string; dto: UpdateBranchDto }) =>
       settingsApi.updateBranch(id, dto),
     successMessage: t("common.state.updated"),
-    invalidate: [qk.branches],
+    invalidate: [qk.branches, qk.bootstrap],
   });
 }
 

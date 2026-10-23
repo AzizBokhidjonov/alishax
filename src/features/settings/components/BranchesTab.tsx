@@ -33,8 +33,8 @@ function BranchFormDialog({ branch, trigger }: { branch?: Branch; trigger: React
       ? {
           code: branch.code,
           name: branch.name,
-          address: branch.address,
-          phone: branch.phone,
+          address: branch.address ?? "",
+          phone: branch.phone ?? "",
           status: branch.status,
         }
       : null,
@@ -45,8 +45,8 @@ function BranchFormDialog({ branch, trigger }: { branch?: Branch; trigger: React
           id: branch.id,
           dto: {
             name: values.name,
-            address: values.address,
-            phone: values.phone,
+            address: values.address ?? "",
+            phone: values.phone ?? "",
             status: values.status,
           },
         });
@@ -92,7 +92,12 @@ function BranchFormDialog({ branch, trigger }: { branch?: Branch; trigger: React
           <SelectField
             label={t("settings.branches.status")}
             value={watch("status") ?? "active"}
-            onChange={(value) => setValue("status", value as BranchFormValues["status"])}
+            onChange={(value) =>
+              setValue("status", value as BranchFormValues["status"], {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }
             options={[
               { value: "active", label: t("settings.branches.active") },
               { value: "closed", label: t("settings.branches.closed") },

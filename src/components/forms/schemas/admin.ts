@@ -78,22 +78,36 @@ export const holidaySchema = z.object({
 });
 export type HolidayFormValues = z.infer<typeof holidaySchema>;
 
-export const settingsSchema = z.object({
-  displayName: optionalText,
-  address: optionalText,
-  phones: optionalText,
-  workingDays: z.array(z.number()),
-  open: optionalText,
-  close: optionalText,
-  defaultLanguage: z.enum(["uz", "ru"]).optional(),
-  currency: optionalText,
-  timezone: optionalText,
-  receiptNumberFormat: optionalText,
-  paymentDueDay: z.coerce.number().int().min(1).max(28).optional(),
-  logoFileId: optionalId,
-  bankDetailsJson: optionalText,
-  taxInfoJson: optionalText,
-});
+const settingsTime = z
+  .string()
+  .trim()
+  .refine(
+    (value) => !value || /^([01]\d|2[0-3]):[0-5]\d$/.test(value),
+    "settings.form.invalidTime",
+  );
+
+export const settingsSchema = z
+  .object({
+    displayName: requiredText(),
+    address: z.string().trim(),
+    phones: z.string().trim(),
+    workingDays: z.array(z.number().int().min(1).max(7)),
+    open: settingsTime,
+    close: settingsTime,
+    defaultLanguage: z.enum(["uz", "ru"], { required_error: "common.validation.required" }),
+    currency: requiredText(),
+    timezone: requiredText(),
+    receiptNumberFormat: requiredText(),
+    paymentDueDay: z.coerce
+      .number({ invalid_type_error: "settings.form.invalidDueDay" })
+      .int("settings.form.invalidDueDay")
+      .min(1, "settings.form.invalidDueDay")
+      .max(28, "settings.form.invalidDueDay"),
+  })
+  .refine((values) => Boolean(values.open) === Boolean(values.close), {
+    path: ["close"],
+    message: "settings.form.bothHoursRequired",
+  });
 export type SettingsFormValues = z.infer<typeof settingsSchema>;
 
 export const changePasswordSchema = z

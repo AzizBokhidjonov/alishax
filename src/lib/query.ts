@@ -15,6 +15,7 @@ import { errorMessage, errorTraceId } from "./errors";
  */
 export const qk = {
   me: ["auth", "me"] as const,
+  bootstrap: ["auth", "bootstrap"] as const,
   children: (params: unknown = {}) => ["children", params] as const,
   child: (id: string) => ["children", "detail", id] as const,
   childDocuments: (id: string) => ["children", id, "documents"] as const,

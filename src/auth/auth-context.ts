@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { authApi } from "@/api";
+import { qk } from "@/lib/query";
 import type { AuthUser, MeResponse, PermissionMap, RoleRef, Scope } from "@/api";
 
 export type AuthStatus = "loading" | "authenticated" | "anonymous";
@@ -29,7 +30,7 @@ export function useAuth(): AuthContextValue {
 export function useBootstrapLookups() {
   const { status, user, permissionsVersion } = useAuth();
   return useQuery({
-    queryKey: ["auth", "bootstrap", user?.id, permissionsVersion],
+    queryKey: [...qk.bootstrap, user?.id, permissionsVersion],
     queryFn: () => authApi.bootstrap(),
     enabled: status === "authenticated",
     staleTime: 60 * 1000,

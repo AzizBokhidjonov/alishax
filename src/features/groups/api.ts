@@ -63,7 +63,7 @@ export function useCreateGroup() {
   return useApiMutation({
     mutationFn: (dto: CreateGroupDto) => groupsApi.create(dto),
     successMessage: t("common.state.created"),
-    invalidate: [["groups"]],
+    invalidate: [["groups"], qk.bootstrap],
   });
 }
 
@@ -72,7 +72,7 @@ export function useUpdateGroup() {
   return useApiMutation({
     mutationFn: ({ id, dto }: { id: string; dto: UpdateGroupDto }) => groupsApi.update(id, dto),
     successMessage: t("common.state.updated"),
-    invalidate: [["groups"]],
+    invalidate: [["groups"], qk.bootstrap],
   });
 }
 
@@ -81,7 +81,7 @@ export function useSetGroupStaff(id: string) {
   return useApiMutation({
     mutationFn: (dto: SetStaffDto) => groupsApi.setStaff(id, dto),
     successMessage: t("groups.staff.saved"),
-    invalidate: [qk.groupStaff(id), qk.group(id)],
+    invalidate: [qk.groupStaff(id), qk.group(id), qk.bootstrap],
   });
 }
 

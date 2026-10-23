@@ -57,7 +57,15 @@ export function SelectField({
   return (
     <div className={cn("space-y-1.5", className)}>
       {label ? <Label htmlFor={id}>{label}</Label> : null}
-      <Select value={value ?? ""} onValueChange={onChange} disabled={disabled}>
+      <Select
+        value={value ?? ""}
+        onValueChange={(next) => {
+          // Radix yashirin select'ni tiklayotganda bo'sh hodisa yuboradi.
+          // Bo'sh variant yo'q; boshqariladigan qiymatni bu hodisa bilan o'chirmaymiz.
+          if (next !== "") onChange(next);
+        }}
+        disabled={disabled}
+      >
         <SelectTrigger
           id={id}
           aria-label={label ? undefined : ariaLabel}

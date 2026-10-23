@@ -7,6 +7,10 @@ export const settings = {
     security: "Xavfsizlik",
   },
   form: {
+    invalidTime: "Vaqtni HH:mm shaklida kiriting",
+    invalidDueDay: "Oyning 1 dan 28 gacha kunini kiriting",
+    bothHoursRequired: "Ish boshlanishi va tugashini birga kiriting yoki ikkalasini ham tozalang",
+    logoUnavailable: "Logotipni o'zgartirish hozircha mavjud emas",
     displayName: "Tashkilot nomi",
     logo: "Logotip",
     address: "Manzil",

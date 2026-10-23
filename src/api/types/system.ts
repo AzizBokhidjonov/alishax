@@ -4,8 +4,8 @@ export interface Branch {
   id: Id;
   code: string;
   name: string;
-  address?: string;
-  phone?: string;
+  address?: string | null;
+  phone?: string | null;
   status?: "active" | "closed";
 }
 
@@ -24,23 +24,23 @@ export interface UpdateBranchDto {
 }
 
 export interface Settings {
-  displayName?: string;
-  logoFileId?: Id;
+  displayName: string;
+  logoFileId?: Id | null;
   logoUrl?: string;
-  address?: string;
+  address?: string | null;
   phones?: string[];
-  bankDetails?: Record<string, string>;
-  taxInfo?: Record<string, string>;
+  bankDetails?: Record<string, unknown> | null;
+  taxInfo?: Record<string, unknown> | null;
   workingDays?: number[];
-  workingHours?: { open: string; close: string };
-  defaultLanguage?: "uz" | "ru";
-  currency?: string;
-  timezone?: string;
-  receiptNumberFormat?: string;
-  paymentDueDay?: number;
+  workingHours?: { open?: string; close?: string } | null;
+  defaultLanguage: "uz" | "ru";
+  currency: string;
+  timezone: string;
+  receiptNumberFormat: string;
+  paymentDueDay: number;
 }
 
-export type UpdateSettingsDto = Settings;
+export type UpdateSettingsDto = Partial<Omit<Settings, "logoFileId" | "logoUrl">>;
 
 export interface Holiday {
   id: Id;
