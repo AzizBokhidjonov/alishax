@@ -118,6 +118,10 @@ export function useCreateTemporaryPermission(childId: string) {
   return useApiMutation({
     mutationFn: (dto: TemporaryPermissionDto) => pickupApi.createTemporary(dto),
     successMessage: t("pickup.temporary.created"),
-    invalidate: [qk.pickupPersons(childId), qk.pickupHistory(childId)],
+    invalidate: [
+      qk.pickupPersons(childId),
+      qk.pickupHistory(childId),
+      ["pickup", "active", childId],
+    ],
   });
 }

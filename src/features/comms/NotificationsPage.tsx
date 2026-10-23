@@ -28,7 +28,7 @@ import { useNotifications, useRetryNotification } from "./api";
 import { useUrlState } from "@/hooks/use-url-state";
 import { RefreshButton } from "@/components/common/RefreshButton";
 
-const CHANNELS: NotificationChannel[] = ["telegram", "sms", "internal", "email"];
+const CHANNELS: NotificationChannel[] = ["telegram", "internal"];
 const STATUSES = ["queued", "sent", "delivered", "failed"] as const;
 
 function NotificationLogTab() {

@@ -25,7 +25,7 @@ export type TemplateFormValues = z.infer<typeof templateSchema>;
 
 export const sendNotificationSchema = z.object({
   templateKey: requiredText(),
-  channel: z.enum(["telegram", "sms", "internal", "email"]),
+  channel: z.enum(["telegram", "internal"]),
   recipientIds: z.array(z.string()).min(1, "common.validation.required"),
   dataJson: optionalText,
 });

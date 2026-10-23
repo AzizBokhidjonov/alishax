@@ -1,15 +1,21 @@
 import { api, requestExport, type QueryParams } from "../http";
 import { toPage } from "../types";
+import { normalizeChildDebt, normalizeDebtRow, normalizeDebtSummary } from "../adapters/debts";
+import { normalizePayment, type PaymentResponse } from "../adapters/payments";
+import {
+  normalizeBillingRun,
+  normalizeBillingExplanation,
+  type BillingRunResponse,
+  type BillingLineResponse,
+} from "../adapters/billing";
 import type {
   AssignChildTariffDto,
   ChargeLedgerEntry,
   CreateAdjustmentDto,
   EndChildTariffDto,
-  BillingExplain,
   BillingRules,
   BillingRun,
   Charge,
-  ChildDebt,
   ChildTariff,
   CreateBillingRulesDto,
   CreateDiscountDto,
@@ -17,7 +23,6 @@ import type {
   CreatePaymentDto,
   CreateTariffDto,
   DebtRow,
-  DebtSummary,
   Discount,
   Id,
   ListParams,
@@ -81,20 +86,29 @@ export const billingApi = {
   async runs(
     params: { periodId?: string; status?: string } & ListParams = {},
   ): Promise<Paginated<BillingRun>> {
-    const response = await api.get<Paginated<BillingRun> | BillingRun[]>(
+    const response = await api.get<Paginated<BillingRunResponse> | BillingRunResponse[]>(
       "/billing-runs",
       params as QueryParams,
     );
-    return toPage(response);
+    const page = toPage(response);
+    return { ...page, data: page.data.map((run) => normalizeBillingRun(run)) };
   },
 
-  /** Hech narsa yozmaydigan oldindan ko'rish. */
-  preview: (year: number, month: number) => api.post<BillingRun>("/billing-runs", { year, month }),
-  run: (id: Id) => api.get<BillingRun>(`/billing-runs/${id}`),
+  /** Tasdiqlanmagan oldindan ko'rish serverda saqlanadi. */
+  preview: (year: number, month: number) =>
+    api
+      .post<BillingRunResponse>("/billing-runs", { year, month })
+      .then((run) => normalizeBillingRun(run, { year, month })),
+  run: (id: Id) =>
+    api.get<BillingRunResponse>(`/billing-runs/${id}`).then((run) => normalizeBillingRun(run)),
   explain: (id: Id, childId: Id) =>
-    api.get<BillingExplain>(`/billing-runs/${id}/explain/${childId}`),
+    api
+      .get<BillingLineResponse[]>(`/billing-runs/${id}/explain/${childId}`)
+      .then(normalizeBillingExplanation),
   commit: (id: Id, idempotencyKey: string) =>
-    api.post<BillingRun>(`/billing-runs/${id}/commit`, undefined, { idempotencyKey }),
+    api
+      .post<BillingRunResponse>(`/billing-runs/${id}/commit`, undefined, { idempotencyKey })
+      .then((run) => normalizeBillingRun(run)),
   discard: (id: Id) => api.delete<void>(`/billing-runs/${id}`),
 };
 
@@ -151,16 +165,18 @@ export interface PaymentListParams extends ListParams {
 
 export const paymentsApi = {
   async list(params: PaymentListParams = {}): Promise<Paginated<Payment>> {
-    const response = await api.get<Paginated<Payment> | Payment[]>(
+    const response = await api.get<Paginated<PaymentResponse> | PaymentResponse[]>(
       "/payments",
       params as QueryParams,
     );
-    return toPage(response);
+    const page = toPage(response);
+    return { ...page, data: page.data.map(normalizePayment) };
   },
-  get: (id: Id) => api.get<Payment>(`/payments/${id}`),
+  get: (id: Id) => api.get<PaymentResponse>(`/payments/${id}`).then(normalizePayment),
   create: (dto: CreatePaymentDto, idempotencyKey: string) =>
-    api.post<Payment>("/payments", dto, { idempotencyKey }),
-  cancel: (id: Id, reason: string) => api.post<Payment>(`/payments/${id}/cancel`, { reason }),
+    api.post<PaymentResponse>("/payments", dto, { idempotencyKey }).then(normalizePayment),
+  cancel: (id: Id, reason: string) =>
+    api.post<PaymentResponse>(`/payments/${id}/cancel`, { reason }).then(normalizePayment),
   /**
    * Kvitansiya serverda render qilinadi va Bearer token talab qiladi —
    * shuning uchun oddiy havola bilan ochilmaydi, avval fayl olib kelinadi.
@@ -178,9 +194,10 @@ export interface DebtListParams extends ListParams {
 
 export const debtsApi = {
   async list(params: DebtListParams = {}): Promise<Paginated<DebtRow>> {
-    const response = await api.get<Paginated<DebtRow> | DebtRow[]>("/debts", params as QueryParams);
-    return toPage(response);
+    const response = await api.get<Paginated<unknown> | unknown[]>("/debts", params as QueryParams);
+    const page = toPage(response);
+    return { ...page, data: page.data.map(normalizeDebtRow) };
   },
-  ofChild: (childId: Id) => api.get<ChildDebt>(`/debts/${childId}`),
-  summary: () => api.get<DebtSummary>("/debts/summary"),
+  ofChild: (childId: Id) => api.get<unknown>(`/debts/${childId}`).then(normalizeChildDebt),
+  summary: () => api.get<unknown>("/debts/summary").then(normalizeDebtSummary),
 };

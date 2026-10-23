@@ -21,9 +21,10 @@ export function TelegramPanel() {
   const [link, setLink] = useState<string | null>(null);
 
   const sendInvite = (guardianId: string) => {
+    setLink(null);
     invite.mutate(guardianId, {
       onSuccess: (result) => {
-        if (result?.link) setLink(result.link);
+        setLink(result.deepLink);
       },
     });
   };

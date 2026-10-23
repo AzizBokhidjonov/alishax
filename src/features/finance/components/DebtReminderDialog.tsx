@@ -19,7 +19,7 @@ import { formatTiyin } from "@/lib/money";
 import { newIdempotencyKey } from "@/lib/idempotency";
 import { useErrorToast } from "@/lib/query";
 
-const CHANNELS: NotificationChannel[] = ["telegram", "sms", "internal", "email"];
+const CHANNELS: NotificationChannel[] = ["telegram", "internal"];
 
 export interface DebtorTarget {
   childId: string;

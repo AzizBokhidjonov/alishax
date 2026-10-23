@@ -10,6 +10,7 @@ import {
 } from "@/api";
 import type { GroupListParams } from "@/api/endpoints/groups";
 import { qk, useApiMutation } from "@/lib/query";
+import { useBootstrapLookups } from "@/auth/auth-context";
 
 export function useGroups(params: GroupListParams = {}) {
   return useQuery({
@@ -21,8 +22,8 @@ export function useGroups(params: GroupListParams = {}) {
 
 /** Filtr va formalar uchun tayyor variantlar. */
 export function useGroupOptions(): { value: string; label: string }[] {
-  const { data } = useGroups({ limit: 200 });
-  return (data?.data ?? []).map((group) => ({ value: group.id, label: group.name }));
+  const { data } = useBootstrapLookups();
+  return (data?.groups ?? []).map((group) => ({ value: group.id, label: group.name ?? group.id }));
 }
 
 export function useGroup(id: string) {

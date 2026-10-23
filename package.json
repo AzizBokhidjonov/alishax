@@ -8,10 +8,13 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "gen:api": "openapi-typescript ./src/api/openapi.json -o src/api/schema.d.ts",
-    "fetch:api": "curl -s https://api.alishaxkids.uz/docs-json -o src/api/openapi.json"
+    "fetch:api": "curl -s https://api.alishaxkids.uz/docs-json -o src/api/openapi.json",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test",
+    "check": "npm run typecheck && npm run lint && npm test && npm run build"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

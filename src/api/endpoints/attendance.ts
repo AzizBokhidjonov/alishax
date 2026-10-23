@@ -1,8 +1,12 @@
 import { api, type QueryParams } from "../http";
 import { toPage } from "../types";
+import {
+  normalizeAttendance,
+  normalizeAttendanceBoard,
+  type AttendanceResponse,
+  type AttendanceBoardResponse,
+} from "../adapters/attendance";
 import type {
-  AttendanceBoard,
-  AttendanceCalendarDay,
   AttendanceCorrection,
   AttendanceRecord,
   AttendanceSummaryRow,
@@ -24,44 +28,48 @@ export interface AttendanceListParams extends ListParams {
   status?: string;
 }
 
+const normalizeRows = (rows: AttendanceResponse[]) => rows.map(normalizeAttendance);
+
 export const attendanceApi = {
-  /**
-   * Kunning TO'LIQ reyestri — taxtaning yagona to'g'ri manbasi.
-   *
-   * `/attendance/today` dan farqi: u faqat YOZUVI BOR bolalarni qaytaradi va
-   * ertalab bo'sh bo'ladi. Taxta esa belgilanmagan bolalarni ko'rsatishi
-   * kerak, chunki yozuv aynan shu ekranda yaratiladi. `attendance: null` —
-   * «yozilmagan», «kelmagan» emas.
-   */
+  // Yozuvsiz bolalar ham qaytadi; null davomat «hali belgilanmagan» degani.
   board: (params: { groupId?: string; branchId?: string } = {}) =>
-    api.get<AttendanceBoard>("/attendance/board", params as QueryParams),
+    api
+      .get<AttendanceBoardResponse>("/attendance/board", params as QueryParams)
+      .then(normalizeAttendanceBoard),
 
   today: (params: { groupId?: string; branchId?: string } = {}) =>
-    api.get<AttendanceRecord[]>("/attendance/today", params as QueryParams),
+    api.get<AttendanceResponse[]>("/attendance/today", params as QueryParams).then(normalizeRows),
 
   async list(params: AttendanceListParams = {}): Promise<Paginated<AttendanceRecord>> {
-    const response = await api.get<Paginated<AttendanceRecord> | AttendanceRecord[]>(
+    const response = await api.get<Paginated<AttendanceResponse> | AttendanceResponse[]>(
       "/attendance",
       params as QueryParams,
     );
-    return toPage(response);
+    const page = toPage(response);
+    return { ...page, data: normalizeRows(page.data) };
   },
 
-  inside: () => api.get<AttendanceRecord[]>("/attendance/inside"),
-  absent: (date: string) => api.get<AttendanceRecord[]>("/attendance/absent", { date }),
-  notPickedUp: () => api.get<AttendanceRecord[]>("/attendance/not-picked-up"),
+  inside: () => api.get<AttendanceResponse[]>("/attendance/inside").then(normalizeRows),
+  absent: (date: string) =>
+    api.get<AttendanceResponse[]>("/attendance/absent", { date }).then(normalizeRows),
+  notPickedUp: () => api.get<AttendanceResponse[]>("/attendance/not-picked-up").then(normalizeRows),
 
   calendar: (childId: Id, year: number, month: number) =>
-    api.get<AttendanceCalendarDay[]>("/attendance/calendar", { childId, year, month }),
+    api
+      .get<AttendanceResponse[]>("/attendance/calendar", { childId, year, month })
+      .then(normalizeRows),
   summary: (params: { groupId?: string; from?: string; to?: string }) =>
     api.get<AttendanceSummaryRow[]>("/attendance/summary", params as QueryParams),
 
-  checkIn: (dto: CheckInDto) => api.post<AttendanceRecord>("/attendance/check-in", dto),
-  checkOut: (dto: CheckOutDto) => api.post<AttendanceRecord>("/attendance/check-out", dto),
-  setStatus: (dto: SetAttendanceStatusDto) => api.post<AttendanceRecord>("/attendance/status", dto),
+  checkIn: (dto: CheckInDto) =>
+    api.post<AttendanceResponse>("/attendance/check-in", dto).then(normalizeAttendance),
+  checkOut: (dto: CheckOutDto) =>
+    api.post<AttendanceResponse>("/attendance/check-out", dto).then(normalizeAttendance),
+  setStatus: (dto: SetAttendanceStatusDto) =>
+    api.post<AttendanceResponse>("/attendance/status", dto).then(normalizeAttendance),
 
   correct: (id: Id, dto: CorrectAttendanceDto) =>
-    api.post<AttendanceRecord>(`/attendance/${id}/correct`, dto),
+    api.post<AttendanceResponse>(`/attendance/${id}/correct`, dto).then(normalizeAttendance),
   corrections: (params: { from?: string; to?: string; userId?: string } = {}) =>
     api.get<AttendanceCorrection[]>("/attendance/corrections", params as QueryParams),
 };

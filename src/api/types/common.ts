@@ -1,10 +1,8 @@
 /**
- * Backend bilan almashinuv turlari.
+ * UI modellari va backend so'rov turlari.
  *
- * So'rov tanalari `openapi.json` dagi DTO'lardan olingan. Javob tuzilmalari
- * sxemada tavsiflanmagani uchun `docs/frontend-functional-spec.md` asosida
- * yozilgan — shuning uchun ko'p maydon ixtiyoriy. Sxema fayli loyihaga
- * qo'shilganda `npm run gen:api` bilan generatsiya qilingan turlarga o'tiladi.
+ * OpenAPI so'rov shartnomasini saqlaydi. Javoblarni UI shakliga aylantirish
+ * `api/adapters` da bajariladi va backend shaklidagi testlar bilan tekshiriladi.
  */
 
 /** Butun tiyin, satr ko'rinishida: "150000000" = 1 500 000,00 so'm. */

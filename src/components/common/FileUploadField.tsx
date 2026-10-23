@@ -52,7 +52,7 @@ export function FileUploadField({
       }
       setUploading(true);
       try {
-        const uploaded = await filesApi.upload(file, entityType, entityId);
+        const uploaded = await filesApi.upload(file, entityId ? entityType : undefined, entityId);
         uploadedHere.current.add(uploaded.fileId);
         onChange(uploaded.fileId);
         setFileName(file.name);

@@ -15,10 +15,11 @@ import {
 import type { ChildListParams } from "@/api/endpoints/children";
 import { qk, useApiMutation } from "@/lib/query";
 
-export function useChildren(params: ChildListParams) {
+export function useChildren(params: ChildListParams, enabled = true) {
   return useQuery({
     queryKey: qk.children(params),
     queryFn: () => childrenApi.list(params),
+    enabled,
     placeholderData: (previous) => previous,
   });
 }

@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { LIST_LIMIT_MAX } from "@/api";
 import { useChildren } from "./api";
+import { usePermissions } from "@/auth/auth-context";
+import { P } from "@/config/permissions";
 
 export interface ChildLookupEntry {
   name: string;
@@ -21,7 +23,8 @@ export interface ChildLookupEntry {
  * davomat ro'yxatida uchraydi va uning ismi ham kerak.
  */
 export function useChildLookup(): Map<string, ChildLookupEntry> {
-  const { data } = useChildren({ limit: LIST_LIMIT_MAX });
+  const { can } = usePermissions();
+  const { data } = useChildren({ limit: LIST_LIMIT_MAX }, can(P.childRead));
 
   return useMemo(() => {
     const map = new Map<string, ChildLookupEntry>();

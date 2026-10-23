@@ -4,16 +4,15 @@ import {
   type DefaultValues,
   type FieldValues,
   type Path,
-  type Resolver,
   type UseFormReturn,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { ZodType } from "zod";
+import type { ZodType, ZodTypeDef } from "zod";
 import { fieldErrors } from "@/api";
 
 export interface EntityFormOptions<T extends FieldValues> {
   /** Validatsiya sxemasi (server qoidalarini takrorlaydi). */
-  schema: ZodType<T>;
+  schema: ZodType<T, ZodTypeDef & { typeName: string }, T>;
   /** Yangi yozuv uchun boshlang'ich qiymatlar. */
   defaults: T | (() => T);
   /** Berilsa — tahrirlash rejimi; forma shu yozuv bilan to'ldiriladi. */
@@ -55,7 +54,7 @@ export function useEntityForm<T extends FieldValues>({
   const isEditing = !!entity;
 
   const form = useForm<T>({
-    resolver: zodResolver(schema) as Resolver<T>,
+    resolver: zodResolver(schema),
     defaultValues: resolveDefaults(defaults) as DefaultValues<T>,
     mode: "onChange",
   });

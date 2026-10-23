@@ -1,161 +1,21 @@
+import { patchBoard, applyRecord, restoreBoard } from "./board-cache";
 import { useEffect } from "react";
-import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   attendanceApi,
   isApiError,
-  type AttendanceBoard,
-  type AttendanceRecord,
   type CheckInDto,
   type CheckOutDto,
   type CorrectAttendanceDto,
   type SetAttendanceStatusDto,
 } from "@/api";
-import type { AttendanceListParams } from "@/api/endpoints/attendance";
-import { ATTENDANCE_POLL_MS } from "@/config/constants";
 import { todayIso } from "@/lib/dates";
 import { qk, useApiMutation, useErrorToast } from "@/lib/query";
 import { enqueueCheckIn, isRetryable, setCheckInQueueHandlers } from "./checkin-queue";
 
-export function useAttendanceToday(params: { groupId?: string; branchId?: string }) {
-  return useQuery({
-    queryKey: qk.attendanceToday(params),
-    queryFn: () => attendanceApi.today(params),
-    // SSE yo'q — taxta 25 soniyada va oynaga qaytilganda yangilanadi (§5.1).
-    refetchInterval: ATTENDANCE_POLL_MS,
-    refetchOnWindowFocus: true,
-  });
-}
-
-export function useAttendanceList(params: AttendanceListParams) {
-  return useQuery({
-    queryKey: qk.attendance(params),
-    queryFn: () => attendanceApi.list(params),
-    placeholderData: (previous) => previous,
-  });
-}
-
-export function useInside() {
-  return useQuery({
-    queryKey: qk.attendanceInside,
-    queryFn: () => attendanceApi.inside(),
-    refetchInterval: ATTENDANCE_POLL_MS,
-    refetchOnWindowFocus: true,
-  });
-}
-
-export function useAbsent(date: string) {
-  return useQuery({
-    queryKey: qk.attendanceAbsent(date),
-    queryFn: () => attendanceApi.absent(date),
-  });
-}
-
-export function useNotPickedUp() {
-  return useQuery({
-    queryKey: qk.attendanceNotPickedUp,
-    queryFn: () => attendanceApi.notPickedUp(),
-    refetchInterval: ATTENDANCE_POLL_MS,
-    refetchOnWindowFocus: true,
-  });
-}
-
-export function useAttendanceCalendar(childId: string, year: number, month: number) {
-  return useQuery({
-    queryKey: qk.attendanceCalendar({ childId, year, month }),
-    queryFn: () => attendanceApi.calendar(childId, year, month),
-    enabled: Boolean(childId),
-  });
-}
-
-export function useAttendanceSummary(params: { groupId?: string; from?: string; to?: string }) {
-  return useQuery({
-    queryKey: qk.attendanceSummary(params),
-    queryFn: () => attendanceApi.summary(params),
-  });
-}
-
-export function useCorrections(params: { from?: string; to?: string; userId?: string }) {
-  return useQuery({
-    queryKey: qk.attendanceCorrections(params),
-    queryFn: () => attendanceApi.corrections(params),
-  });
-}
-
 const ATTENDANCE_KEYS = [["attendance"]];
-
-type BoardSnapshot = [readonly unknown[], AttendanceBoard | undefined][];
-
-/**
- * Taxta keshiga BITTA qatorni yozish.
- *
- * Handbook (2026-10-04) buni aniq talab qiladi: muvaffaqiyatli amaldan keyin
- * faqat mos keladigan qatorning `attendance` i almashtiriladi, `child`
- * obyekti va qolgan qatorlar saqlanadi. Shunda guruh tanlovi, qidiruv,
- * fokus va skroll joyida qoladi — butun ro'yxatni qayta qurish esa aynan
- * shularni yo'qotadi.
- *
- * Mos keltirish `response.childId` ↔ `row.child.id` bo'yicha: davomat
- * yozuvining `id` si optimistik qatorda hali yo'q.
- */
-function patchBoard(
-  queryClient: QueryClient,
-  childId: string,
-  patch: Partial<AttendanceRecord>,
-): BoardSnapshot {
-  const snapshot = queryClient.getQueriesData<AttendanceBoard>({
-    queryKey: ["attendance", "board"],
-  });
-
-  for (const [key, board] of snapshot) {
-    if (!board) continue;
-    queryClient.setQueryData<AttendanceBoard>(key, {
-      ...board,
-      data: board.data.map((item) =>
-        item.child.id === childId
-          ? {
-              ...item,
-              recorded: true,
-              attendance: {
-                // Yozuv hali bo'lmasa, optimistik qator shu yerda tug'iladi.
-                id: item.attendance?.id ?? `optimistic:${childId}`,
-                childId,
-                date: board.date,
-                ...item.attendance,
-                ...patch,
-              },
-            }
-          : item,
-      ),
-    });
-  }
-
-  return snapshot;
-}
-
-/** Serverdan kelgan HAQIQIY yozuvni joyiga qo'yish. */
-function applyRecord(queryClient: QueryClient, record: AttendanceRecord): void {
-  const entries = queryClient.getQueriesData<AttendanceBoard>({
-    queryKey: ["attendance", "board"],
-  });
-
-  for (const [key, board] of entries) {
-    if (!board) continue;
-    queryClient.setQueryData<AttendanceBoard>(key, {
-      ...board,
-      data: board.data.map((item) =>
-        item.child.id === record.childId
-          ? { ...item, recorded: true, attendance: { ...item.attendance, ...record } }
-          : item,
-      ),
-    });
-  }
-}
-
-function restoreBoard(queryClient: QueryClient, snapshot: BoardSnapshot | undefined): void {
-  for (const [key, board] of snapshot ?? []) queryClient.setQueryData(key, board);
-}
 
 /**
  * Navbat fonda ishlaydi va keshni o'zi yangilay olmaydi — bog'lovchi shu.
@@ -328,3 +188,5 @@ export function useCorrectAttendance() {
     invalidate: ATTENDANCE_KEYS,
   });
 }
+
+export * from "./api-queries";

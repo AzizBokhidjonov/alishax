@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useBranch } from "@/auth/use-branch";
-import { useBranches } from "@/features/settings/api";
+import { useBootstrapLookups } from "@/auth/auth-context";
 import { cn, focusRing } from "@/lib/utils";
 
 /**
@@ -21,11 +21,11 @@ import { cn, focusRing } from "@/lib/utils";
 export function BranchSwitcher() {
   const { t } = useTranslation();
   const { branchId, branchIds, canSwitch, setBranch } = useBranch();
-  const { data } = useBranches();
+  const { data } = useBootstrapLookups();
 
   if (!canSwitch) return null;
 
-  const mine = (data ?? []).filter((branch) => branchIds.includes(branch.id));
+  const mine = (data?.branches ?? []).filter((branch) => branchIds.includes(branch.id));
   const currentName = mine.find((branch) => branch.id === branchId)?.name ?? branchId;
 
   return (

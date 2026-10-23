@@ -194,7 +194,7 @@ export function DebtsPage() {
                     <Money value={row.currentDebt} className="font-medium text-st-danger-fg" />
                   </TableCell>
                   <TableCell>
-                    <Money value={row.overdueAmount ?? "0"} />
+                    {row.overdueAmount != null ? <Money value={row.overdueAmount} /> : "—"}
                   </TableCell>
                   <TableCell>
                     <Money value={row.advanceBalance ?? "0"} />

@@ -14,6 +14,8 @@ import { AttendanceBadge } from "@/components/common/StatusBadge";
 import { formatTime } from "@/lib/dates";
 import { cn, focusRing } from "@/lib/utils";
 import { CheckOutDialog } from "./CheckOutDialog";
+import { usePermissions } from "@/auth/auth-context";
+import { P } from "@/config/permissions";
 
 const ABSENCE: AbsenceStatus[] = ["absent", "sick", "vacation", "excused"];
 
@@ -47,6 +49,7 @@ export function AttendanceCard({
   onSetStatus,
 }: AttendanceCardProps) {
   const { t } = useTranslation();
+  const { can } = usePermissions();
 
   const inside = Boolean(row.checkInAt && !row.checkOutAt);
   const hasAlert = Boolean(row.alerts && row.alerts.length > 0);
@@ -102,7 +105,7 @@ export function AttendanceCard({
 
       {canManage ? (
         <div className="mt-auto flex items-center gap-1 pt-1">
-          {!row.checkInAt ? (
+          {!row.checkInAt && can(P.attendanceCheckIn) ? (
             // Bir teginish, oyna yo'q, vaqt tanlagich yo'q — vaqtni server qo'yadi.
             <Button className="h-11 flex-1 text-base" onClick={() => onCheckIn(row.childId)}>
               <LogIn className="mr-1.5 h-4 w-4" />
@@ -110,7 +113,7 @@ export function AttendanceCard({
             </Button>
           ) : null}
 
-          {inside ? (
+          {inside && can(P.attendanceCheckOut) && can(P.pickupRead) ? (
             <CheckOutDialog
               childId={row.childId}
               childName={name}
@@ -118,7 +121,7 @@ export function AttendanceCard({
             />
           ) : null}
 
-          {!row.checkInAt ? (
+          {!row.checkInAt && can(P.attendanceCheckIn) ? (
             <DropdownMenu>
               <DropdownMenuTrigger
                 aria-label={t("attendance.setStatus")}

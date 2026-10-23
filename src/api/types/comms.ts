@@ -64,7 +64,7 @@ export interface UpsertNotificationTemplateDto {
   includeAmounts?: boolean;
 }
 
-export type NotificationChannel = "telegram" | "sms" | "internal" | "email";
+export type NotificationChannel = "telegram" | "internal";
 export type NotificationStatus = "queued" | "sent" | "delivered" | "failed";
 
 export interface NotificationAttempt {
@@ -108,7 +108,6 @@ export interface TelegramBinding {
 }
 
 export interface TelegramInviteResult {
-  token?: string;
-  link?: string;
-  expiresAt?: IsoDateTime;
+  deepLink: string;
+  expiresInHours: number;
 }

@@ -16,7 +16,7 @@ lokal demo ma'lumot yo'q.
 ## Ishga tushirish
 
 ```sh
-npm install
+npm ci
 npm run dev      # http://localhost:8080
 ```
 
@@ -46,6 +46,10 @@ kerak emas, `VITE_API_BASE_URL` ga to'liq manzil yozish mumkin.
 | `npm run format`    | Prettier                                          |
 | `npm run fetch:api` | Jonli OpenAPI sxemasini `src/api/openapi.json` ga |
 | `npm run gen:api`   | Sxemadan turlar generatsiyasi                     |
+
+Mustaqil repolar, API adapterlari, testlar va deploy: [Backend integration](docs/backend-integration.md).
+
+`npm run check` — typecheck, lint, regressiya testlari va production build.
 
 ## Loyiha tuzilishi
 

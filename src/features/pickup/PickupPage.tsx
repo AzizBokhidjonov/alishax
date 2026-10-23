@@ -38,8 +38,9 @@ export function PickupPage() {
     (`NOT_CHECKED_IN`). Lekin bu holat tanlash paytidayoq ma'lum — tugmani
     bosib, xato kutib o'tirish shart emas (§5.2 «sabab va keyingi qadam»).
   */
-  const inside = useInside();
-  const isInside = (inside.data ?? []).some((row) => row.childId === childId);
+  const canReadAttendance = can(P.attendanceRead);
+  const inside = useInside(canReadAttendance);
+  const isInside = !canReadAttendance || (inside.data ?? []).some((row) => row.childId === childId);
 
   const flow = usePickupCheckOut(childId, { childName, enabled: Boolean(childId) });
 
@@ -103,7 +104,7 @@ export function PickupPage() {
               holati alohida aytiladi: bu rad etish emas, tartib xatosi —
               avval kirish qayd etilishi kerak.
             */}
-            {flow.allowed ? (
+            {flow.allowed && can(P.attendanceCheckOut) ? (
               isInside ? (
                 <div className="w-full space-y-3 pt-2">
                   <Textarea

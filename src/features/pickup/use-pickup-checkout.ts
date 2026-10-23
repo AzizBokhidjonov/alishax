@@ -72,7 +72,7 @@ export function usePickupCheckOut(childId: string, options: Options = {}) {
   };
 
   const submit = () => {
-    if (!recipient) return;
+    if (!recipient || verdict?.allowed !== true || verify.isFetching || checkOut.isPending) return;
     checkOut.mutate(
       {
         childId,

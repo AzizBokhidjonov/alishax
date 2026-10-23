@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
   settingsApi,
-  type Branch,
   type CreateBranchDto,
   type CreateHolidayDto,
   type Holiday,
@@ -10,6 +9,7 @@ import {
   type UpdateSettingsDto,
 } from "@/api";
 import { qk, useApiMutation } from "@/lib/query";
+import { useBootstrapLookups } from "@/auth/auth-context";
 
 export function useSettings() {
   return useQuery({ queryKey: qk.settings, queryFn: () => settingsApi.get() });
@@ -25,8 +25,11 @@ export function useBranches() {
 }
 
 export function useBranchOptions(): { value: string; label: string }[] {
-  const { data } = useBranches();
-  return (data ?? []).map((branch: Branch) => ({ value: branch.id, label: branch.name }));
+  const { data } = useBootstrapLookups();
+  return (data?.branches ?? []).map((branch) => ({
+    value: branch.id,
+    label: branch.name ?? branch.id,
+  }));
 }
 
 export function useHolidays(params: { year?: number; branchId?: string }) {

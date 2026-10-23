@@ -11,8 +11,10 @@ import { CorrectionsLog } from "./components/CorrectionsLog";
 
 export function AttendancePage() {
   const { t } = useTranslation();
-  const { canAny } = usePermissions();
+  const { can, canAny, scopeOf } = usePermissions();
   const canManage = canAny(P.attendanceCheckIn, P.attendanceCheckOut);
+  const canReadHistory = scopeOf(P.attendanceRead) !== "today";
+  const canCorrect = can(P.attendanceCorrect);
 
   return (
     <div className="space-y-6">
@@ -21,23 +23,35 @@ export function AttendancePage() {
       <Tabs defaultValue="board">
         <TabsList>
           <TabsTrigger value="board">{t("attendance.tabs.board")}</TabsTrigger>
-          <TabsTrigger value="journal">{t("attendance.tabs.journal")}</TabsTrigger>
-          <TabsTrigger value="summary">{t("attendance.tabs.summary")}</TabsTrigger>
-          <TabsTrigger value="corrections">{t("attendance.tabs.corrections")}</TabsTrigger>
+          {canReadHistory ? (
+            <TabsTrigger value="journal">{t("attendance.tabs.journal")}</TabsTrigger>
+          ) : null}
+          {canReadHistory ? (
+            <TabsTrigger value="summary">{t("attendance.tabs.summary")}</TabsTrigger>
+          ) : null}
+          {canCorrect ? (
+            <TabsTrigger value="corrections">{t("attendance.tabs.corrections")}</TabsTrigger>
+          ) : null}
         </TabsList>
 
         <TabsContent value="board">
           <AttendanceBoard canManage={canManage} />
         </TabsContent>
-        <TabsContent value="journal">
-          <AttendanceJournal canManage={canManage} />
-        </TabsContent>
-        <TabsContent value="summary">
-          <AttendanceSummaryTab />
-        </TabsContent>
-        <TabsContent value="corrections">
-          <CorrectionsLog />
-        </TabsContent>
+        {canReadHistory ? (
+          <TabsContent value="journal">
+            <AttendanceJournal canManage={canCorrect} />
+          </TabsContent>
+        ) : null}
+        {canReadHistory ? (
+          <TabsContent value="summary">
+            <AttendanceSummaryTab />
+          </TabsContent>
+        ) : null}
+        {canCorrect ? (
+          <TabsContent value="corrections">
+            <CorrectionsLog />
+          </TabsContent>
+        ) : null}
       </Tabs>
     </div>
   );

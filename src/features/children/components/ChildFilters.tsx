@@ -3,6 +3,8 @@ import { HeartPulse, Wallet } from "lucide-react";
 import { FilterBar, FilterToggle, SearchField } from "@/components/common/FilterBar";
 import { SelectField } from "@/components/common/SelectField";
 import { useGroupOptions } from "@/features/groups/api";
+import { usePermissions } from "@/auth/auth-context";
+import { P } from "@/config/permissions";
 
 /**
  * Filtr panelidagi tanlov maydonlarining kengligi. Ilgari bitta panelda
@@ -37,6 +39,7 @@ export function ChildFilters({
 }: ChildFiltersProps) {
   const { t } = useTranslation();
   const groups = useGroupOptions();
+  const { can } = usePermissions();
 
   return (
     <FilterBar activeCount={activeCount} onReset={onReset}>
@@ -56,20 +59,24 @@ export function ChildFilters({
       />
 
       <div className="flex flex-wrap items-end gap-2 self-end">
-        <FilterToggle
-          icon={Wallet}
-          checked={filters.hasDebt === "true"}
-          onCheckedChange={(checked) => onFilterChange("hasDebt", checked ? "true" : "")}
-        >
-          {t("children.filters.hasDebt")}
-        </FilterToggle>
-        <FilterToggle
-          icon={HeartPulse}
-          checked={filters.hasMedicalAlert === "true"}
-          onCheckedChange={(checked) => onFilterChange("hasMedicalAlert", checked ? "true" : "")}
-        >
-          {t("children.filters.hasMedicalAlert")}
-        </FilterToggle>
+        {can(P.debtRead) ? (
+          <FilterToggle
+            icon={Wallet}
+            checked={filters.hasDebt === "true"}
+            onCheckedChange={(checked) => onFilterChange("hasDebt", checked ? "true" : "")}
+          >
+            {t("children.filters.hasDebt")}
+          </FilterToggle>
+        ) : null}
+        {can(P.medicalAlerts) ? (
+          <FilterToggle
+            icon={HeartPulse}
+            checked={filters.hasMedicalAlert === "true"}
+            onCheckedChange={(checked) => onFilterChange("hasMedicalAlert", checked ? "true" : "")}
+          >
+            {t("children.filters.hasMedicalAlert")}
+          </FilterToggle>
+        ) : null}
       </div>
     </FilterBar>
   );

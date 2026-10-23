@@ -1,4 +1,6 @@
 import { createContext, useContext, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { authApi } from "@/api";
 import type { AuthUser, MeResponse, PermissionMap, RoleRef, Scope } from "@/api";
 
 export type AuthStatus = "loading" | "authenticated" | "anonymous";
@@ -22,6 +24,16 @@ export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
   if (!context) throw new Error("useAuth faqat AuthProvider ichida ishlatiladi");
   return context;
+}
+
+export function useBootstrapLookups() {
+  const { status, user, permissionsVersion } = useAuth();
+  return useQuery({
+    queryKey: ["auth", "bootstrap", user?.id, permissionsVersion],
+    queryFn: () => authApi.bootstrap(),
+    enabled: status === "authenticated",
+    staleTime: 60 * 1000,
+  });
 }
 
 export interface PermissionApi {

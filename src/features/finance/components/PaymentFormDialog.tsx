@@ -1,3 +1,5 @@
+import { usePermissions } from "@/auth/auth-context";
+import { P } from "@/config/permissions";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus } from "lucide-react";
@@ -35,6 +37,7 @@ const METHODS: PaymentMethod[] = ["cash", "bank", "card", "online", "other"];
  */
 export function PaymentFormDialog({ childId }: { childId?: string }) {
   const { t } = useTranslation();
+  const { can } = usePermissions();
   const create = useCreatePayment();
   const idempotency = useIdempotencyKey();
   const [manual, setManual] = useState(false);
@@ -64,7 +67,7 @@ export function PaymentFormDialog({ childId }: { childId?: string }) {
           bankRef: values.bankRef,
           attachmentFileId: values.attachmentFileId,
           note: values.note,
-          allocations: manual && list.length > 0 ? list : undefined,
+          allocations: can(P.chargeRead) && manual && list.length > 0 ? list : undefined,
         },
         idempotencyKey: idempotency.get(),
       });
@@ -166,29 +169,32 @@ export function PaymentFormDialog({ childId }: { childId?: string }) {
           </Field>
         </div>
 
-        <FileUploadField
-          label={t("payments.form.attachment")}
-          value={watch("attachmentFileId")}
-          onChange={(fileId) => setValue("attachmentFileId", fileId)}
-          entityType="payment"
-        />
+        {can(P.fileManage) ? (
+          <FileUploadField
+            label={t("payments.form.attachment")}
+            value={watch("attachmentFileId")}
+            onChange={(fileId) => setValue("attachmentFileId", fileId)}
+          />
+        ) : null}
 
-        <div className="space-y-2 rounded-xl border border-border p-3">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="manual-allocation">{t("payments.form.allocationsTitle")}</Label>
-            <Switch id="manual-allocation" checked={manual} onCheckedChange={setManual} />
+        {can(P.chargeRead) ? (
+          <div className="space-y-2 rounded-xl border border-border p-3">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="manual-allocation">{t("payments.form.allocationsTitle")}</Label>
+              <Switch id="manual-allocation" checked={manual} onCheckedChange={setManual} />
+            </div>
+            {manual && selectedChild ? (
+              <PaymentAllocations
+                childId={selectedChild}
+                amountSom={watch("amountSom")}
+                allocations={allocations}
+                onChange={setAllocations}
+              />
+            ) : (
+              <p className="text-xs text-muted-foreground">{t("payments.form.allocationsHint")}</p>
+            )}
           </div>
-          {manual && selectedChild ? (
-            <PaymentAllocations
-              childId={selectedChild}
-              amountSom={watch("amountSom")}
-              allocations={allocations}
-              onChange={setAllocations}
-            />
-          ) : (
-            <p className="text-xs text-muted-foreground">{t("payments.form.allocationsHint")}</p>
-          )}
-        </div>
+        ) : null}
 
         <Field label={t("payments.form.note")} error={error("note")}>
           <Textarea rows={2} {...register("note")} />

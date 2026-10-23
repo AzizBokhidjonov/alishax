@@ -14,7 +14,7 @@ import { useFieldError } from "@/hooks/use-field-error";
 import { useIdempotencyKey } from "@/lib/idempotency";
 import { useSendNotification, useTemplates } from "../api";
 
-const CHANNELS: NotificationChannel[] = ["telegram", "sms", "internal", "email"];
+const CHANNELS: NotificationChannel[] = ["telegram", "internal"];
 
 /**
  * Xabarnoma yuborish. `Idempotency-Key` majburiy (Integration Guide §8),

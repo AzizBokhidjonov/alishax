@@ -23,11 +23,14 @@ import { useAttendanceList } from "../api";
 import { CorrectionDialog } from "./CorrectionDialog";
 import { SetStatusDialog } from "./SetStatusDialog";
 import { DateField } from "@/components/common/DateField";
+import { usePermissions } from "@/auth/auth-context";
+import { P } from "@/config/permissions";
 
 /** Sana oralig'i bo'yicha davomat jurnali va tuzatish amali. */
 export function AttendanceJournal({ canManage }: { canManage: boolean }) {
   // Ism javobda bo'lmasa bolalar ro'yxatidan olinadi.
   const lookup = useChildLookup();
+  const { can } = usePermissions();
   const { t } = useTranslation();
   const groups = useGroupOptions();
   const [from, setFrom] = useState(todayIso());
@@ -86,7 +89,7 @@ export function AttendanceJournal({ canManage }: { canManage: boolean }) {
           Lekin o'tgan kun yoki oldindan ta'til uchun sana tanlash zarur —
           shuning uchun bu amal jurnalda, ya'ni ma'muriy joyda turadi.
         */}
-        {canManage ? <SetStatusDialog date={from} /> : null}
+        {canManage && can(P.attendanceCheckIn) ? <SetStatusDialog date={from} /> : null}
       </FilterBar>
 
       <QueryState

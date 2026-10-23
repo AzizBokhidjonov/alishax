@@ -23,13 +23,16 @@ import { useChild } from "./api";
 
 export function ChildDetailPage({ childId }: { childId: string }) {
   const { t } = useTranslation();
-  const { can, canAny } = usePermissions();
+  const { can, canAny, scopeOf } = usePermissions();
   const { data: child, isLoading, error, refetch } = useChild(childId);
 
-  const canManage = canAny(P.childCreate, P.childUpdate);
+  const canManage = can(P.childUpdate);
+  const canSeeGuardians = can(P.guardianRead);
+  const canSeeConsents = can(P.consentRead);
+  const canSeeAttendance = can(P.attendanceRead) && scopeOf(P.attendanceRead) !== "today";
   const canSeeMedical = canAny(P.medicalRead, P.medicalAlerts);
-  const canSeeFinance = canAny(P.paymentRead, P.debtRead, P.chargeRead);
-  const canSeePickup = canAny(P.pickupRead, P.pickupManage);
+  const canSeeFinance = can(P.chargeRead);
+  const canSeePickup = can(P.pickupRead);
 
   return (
     <div className="space-y-6">
@@ -52,18 +55,20 @@ export function ChildDetailPage({ childId }: { childId: string }) {
                 </span>
               }
             >
-              {canManage ? (
+              {canManage || can(P.childStatus) ? (
                 <div className="flex gap-2">
                   {can(P.childStatus) ? <ChildStatusDialog child={child} /> : null}
-                  <ChildFormDialog
-                    child={child}
-                    trigger={
-                      <Button variant="outline" className="h-11">
-                        <Pencil className="mr-2 h-4 w-4" />
-                        {t("common.actions.edit")}
-                      </Button>
-                    }
-                  />
+                  {canManage ? (
+                    <ChildFormDialog
+                      child={child}
+                      trigger={
+                        <Button variant="outline" className="h-11">
+                          <Pencil className="mr-2 h-4 w-4" />
+                          {t("common.actions.edit")}
+                        </Button>
+                      }
+                    />
+                  ) : null}
                 </div>
               ) : null}
             </PageHeader>
@@ -71,28 +76,36 @@ export function ChildDetailPage({ childId }: { childId: string }) {
             <Tabs defaultValue="overview">
               <TabsList>
                 <TabsTrigger value="overview">{t("children.tabs.overview")}</TabsTrigger>
-                <TabsTrigger value="guardians">{t("children.tabs.guardians")}</TabsTrigger>
+                {canSeeGuardians ? (
+                  <TabsTrigger value="guardians">{t("children.tabs.guardians")}</TabsTrigger>
+                ) : null}
                 <TabsTrigger value="documents">{t("children.tabs.documents")}</TabsTrigger>
                 {canSeeMedical ? (
                   <TabsTrigger value="medical">{t("children.tabs.medical")}</TabsTrigger>
                 ) : null}
-                <TabsTrigger value="attendance">{t("children.tabs.attendance")}</TabsTrigger>
+                {canSeeAttendance ? (
+                  <TabsTrigger value="attendance">{t("children.tabs.attendance")}</TabsTrigger>
+                ) : null}
                 {canSeePickup ? (
                   <TabsTrigger value="pickup">{t("children.tabs.pickup")}</TabsTrigger>
                 ) : null}
                 {canSeeFinance ? (
                   <TabsTrigger value="finance">{t("children.tabs.finance")}</TabsTrigger>
                 ) : null}
-                <TabsTrigger value="consents">{t("children.tabs.consents")}</TabsTrigger>
+                {canSeeConsents ? (
+                  <TabsTrigger value="consents">{t("children.tabs.consents")}</TabsTrigger>
+                ) : null}
                 <TabsTrigger value="history">{t("children.tabs.history")}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview">
                 <ChildOverviewTab child={child} />
               </TabsContent>
-              <TabsContent value="guardians">
-                <ChildGuardiansTab childId={child.id} canManage={can(P.guardianManage)} />
-              </TabsContent>
+              {canSeeGuardians ? (
+                <TabsContent value="guardians">
+                  <ChildGuardiansTab childId={child.id} canManage={can(P.guardianManage)} />
+                </TabsContent>
+              ) : null}
               <TabsContent value="documents">
                 <ChildDocumentsTab childId={child.id} canManage={canManage} />
               </TabsContent>
@@ -101,9 +114,11 @@ export function ChildDetailPage({ childId }: { childId: string }) {
                   <ChildMedicalTab childId={child.id} />
                 </TabsContent>
               ) : null}
-              <TabsContent value="attendance">
-                <ChildAttendanceTab childId={child.id} />
-              </TabsContent>
+              {canSeeAttendance ? (
+                <TabsContent value="attendance">
+                  <ChildAttendanceTab childId={child.id} />
+                </TabsContent>
+              ) : null}
               {canSeePickup ? (
                 <TabsContent value="pickup">
                   <ChildPickupTab childId={child.id} canManage={can(P.pickupManage)} />
@@ -114,9 +129,11 @@ export function ChildDetailPage({ childId }: { childId: string }) {
                   <ChildFinanceTab childId={child.id} />
                 </TabsContent>
               ) : null}
-              <TabsContent value="consents">
-                <ChildConsentsTab childId={child.id} canManage={can(P.consentManage)} />
-              </TabsContent>
+              {canSeeConsents ? (
+                <TabsContent value="consents">
+                  <ChildConsentsTab childId={child.id} canManage={can(P.consentManage)} />
+                </TabsContent>
+              ) : null}
               <TabsContent value="history">
                 <ChildHistoryTab childId={child.id} />
               </TabsContent>

@@ -35,14 +35,21 @@ const STATUS_TABS: { value: string; labelKey: string }[] = [
 
 export function ChildrenPage() {
   const { t } = useTranslation();
-  const { can, canAny } = usePermissions();
+  const { can } = usePermissions();
+  const canSeeDebt = can(P.debtRead);
+  const canSeeAlerts = can(P.medicalAlerts);
   // `scope` — filtr va sahifa raqami bo'limlar orasida yurganda saqlanadi.
   const params = useListParams({ groupId: "all", status: "all" }, "lastName:asc");
   const { data, isLoading, isPlaceholderData, isFetching, error, refetch, dataUpdatedAt } =
-    useChildren(params.query);
+    useChildren({
+      ...params.query,
+      hasDebt: canSeeDebt && params.filters.hasDebt === "true" ? true : undefined,
+      hasMedicalAlert: canSeeAlerts && params.filters.hasMedicalAlert === "true" ? true : undefined,
+    });
   const remove = useDeleteChild();
 
-  const canEdit = canAny(P.childCreate, P.childUpdate);
+  const canCreate = can(P.childCreate);
+  const canEdit = can(P.childUpdate);
   const canDelete = can(P.childDelete);
 
   const handleDelete = useCallback(
@@ -61,10 +68,10 @@ export function ChildrenPage() {
   const activeCount = useMemo(() => {
     let count = params.q.trim() ? 1 : 0;
     if (params.filters.groupId && params.filters.groupId !== "all") count += 1;
-    if (params.filters.hasDebt === "true") count += 1;
-    if (params.filters.hasMedicalAlert === "true") count += 1;
+    if (canSeeDebt && params.filters.hasDebt === "true") count += 1;
+    if (canSeeAlerts && params.filters.hasMedicalAlert === "true") count += 1;
     return count;
-  }, [params.q, params.filters]);
+  }, [params.q, params.filters, canSeeDebt, canSeeAlerts]);
 
   const rows = data?.data ?? [];
 
@@ -80,7 +87,7 @@ export function ChildrenPage() {
           isFetching={isFetching}
           updatedAt={dataUpdatedAt}
         />
-        {canEdit ? (
+        {canCreate ? (
           <ChildEnrollmentWizard
             trigger={
               <Button className="h-11 rounded-xl">

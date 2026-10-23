@@ -13,6 +13,8 @@ import {
   type UpdateTariffDto,
 } from "@/api";
 import { qk, useApiMutation } from "@/lib/query";
+import { usePermissions } from "@/auth/auth-context";
+import { P } from "@/config/permissions";
 
 /* ---------------------------------------------------------------- tariflar */
 
@@ -102,7 +104,12 @@ export function useRevokeDiscount(childId: string) {
 /* ------------------------------------------------------------------ davrlar */
 
 export function usePeriods(year?: number) {
-  return useQuery({ queryKey: qk.periods(year), queryFn: () => periodsApi.list(year) });
+  const { can } = usePermissions();
+  return useQuery({
+    queryKey: qk.periods(year),
+    queryFn: () => periodsApi.list(year),
+    enabled: can(P.chargeRead),
+  });
 }
 
 export function useCreatePeriod() {
