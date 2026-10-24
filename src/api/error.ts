@@ -105,11 +105,18 @@ export function isApiError(error: unknown): error is ApiError {
 
 /** `422 VALIDATION_FAILED` dagi `details` ni forma maydonlariga moslashtiradi. */
 export function fieldErrors(error: unknown): Record<string, string> {
-  if (!isApiError(error) || !error.details) return {};
+  if (
+    !isApiError(error) ||
+    error.code !== "VALIDATION_FAILED" ||
+    !error.details ||
+    Array.isArray(error.details)
+  )
+    return {};
   const result: Record<string, string> = {};
   for (const [field, value] of Object.entries(error.details)) {
-    if (typeof value === "string") result[field] = value;
-    else if (Array.isArray(value) && typeof value[0] === "string") result[field] = value[0];
+    if (typeof value === "string") result[field] = "common.validation.invalidValue";
+    else if (Array.isArray(value) && typeof value[0] === "string")
+      result[field] = "common.validation.invalidValue";
   }
   return result;
 }

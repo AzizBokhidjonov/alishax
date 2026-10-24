@@ -27,6 +27,7 @@ import { cn, focusRing } from "@/lib/utils";
 import { P } from "@/config/permissions";
 import { addDays, formatDateTime, todayIso } from "@/lib/dates";
 import { addTiyin } from "@/lib/money";
+import { paymentSignedAmount } from "@/api/adapters/payments";
 import { PaymentFormDialog } from "./components/PaymentFormDialog";
 import { PaymentDetailDialog } from "./components/PaymentDetailDialog";
 import { useCancelPayment, usePayments } from "./api";
@@ -143,10 +144,7 @@ export function PaymentsPage() {
           footer={
             <>
               <span className="mr-auto text-muted-foreground">{t("common.table.pageTotal")}</span>
-              <Money
-                value={addTiyin(...rows.map((payment) => payment.amountTiyin))}
-                className="font-semibold"
-              />
+              <Money value={addTiyin(...rows.map(paymentSignedAmount))} className="font-semibold" />
             </>
           }
         >
@@ -181,15 +179,15 @@ export function PaymentsPage() {
                   </TableCell>
                   <TableCell>{payment.payerName ?? "—"}</TableCell>
                   <TableCell>
-                    <Money value={payment.amountTiyin} colored />
-                    {payment.sign === -1 || payment.cancelledAt ? (
+                    <Money value={paymentSignedAmount(payment)} colored />
+                    {payment.sign === -1 || payment.isCancelled ? (
                       <Badge tone="danger" className="ml-2">
                         {t("payments.cancelled")}
                       </Badge>
                     ) : null}
                   </TableCell>
                   <TableCell>{t(`domain.paymentMethod.${payment.method}`)}</TableCell>
-                  <TableCell>{payment.recordedBy ?? "—"}</TableCell>
+                  <TableCell>{payment.recordedByName ?? "—"}</TableCell>
                   <TableCell className="text-right">
                     <div className="inline-flex gap-1">
                       <PaymentDetailDialog
@@ -204,7 +202,7 @@ export function PaymentsPage() {
                         <FileText className="mr-1 h-4 w-4" />
                         {t("payments.receipt.action")}
                       </Button>
-                      {can(P.paymentCancel) && !payment.cancelledAt && payment.sign !== -1 ? (
+                      {can(P.paymentCancel) && !payment.isCancelled && payment.sign !== -1 ? (
                         <ConfirmDialog
                           trigger={
                             <Button size="sm" variant="ghost" className="text-destructive">

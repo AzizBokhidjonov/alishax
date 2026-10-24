@@ -12,6 +12,8 @@ import type {
   UpdateGuardianDto,
 } from "../types";
 
+type GuardianChild = Pick<Child, "id" | "firstName" | "lastName" | "status" | "groupName">;
+
 export interface GuardianListParams extends ListParams {
   phone?: string;
 }
@@ -32,7 +34,10 @@ export const guardiansApi = {
    */
   create: (dto: CreateGuardianDto) => api.post<Guardian>("/guardians", dto),
   update: (id: Id, dto: UpdateGuardianDto) => api.patch<Guardian>(`/guardians/${id}`, dto),
-  children: (id: Id) => api.get<Child[]>(`/guardians/${id}/children`),
+  children: (id: Id) =>
+    api
+      .get<(GuardianChild | { child: GuardianChild })[]>(`/guardians/${id}/children`)
+      .then((rows) => rows.map((row) => ("child" in row ? row.child : row))),
 
   telegramInvite: (id: Id) => api.post<TelegramInviteResult>(`/guardians/${id}/telegram-invite`),
   telegramBindings: () => api.get<TelegramBinding[]>("/telegram/bindings"),

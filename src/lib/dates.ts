@@ -65,8 +65,20 @@ export function formatTime(value?: string | null): string {
  * oldingi kunni beradi. Shuning uchun komponentlar qo'lda beriladi —
  * kalendar qaysi mintaqada ochilmasin, o'sha kunni ko'rsatadi.
  */
+export function isCalendarDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(value + "T00:00:00Z");
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+export function isLocalDateTime(value: string): boolean {
+  return (
+    /^\d{4}-\d{2}-\d{2}T([01]\d|2[0-3]):[0-5]\d$/.test(value) && isCalendarDate(value.slice(0, 10))
+  );
+}
+
 export function isoToDate(value?: string | null): Date | undefined {
-  if (!value) return undefined;
+  if (!value || !isCalendarDate(value.slice(0, 10))) return undefined;
   const [year, month, day] = value.slice(0, 10).split("-").map(Number);
   if (!year || !month || !day) return undefined;
   const date = new Date(year, month - 1, day);
@@ -172,15 +184,13 @@ export function ageFromBirth(birthDate?: string | null): number | null {
 
 /** `<input type="datetime-local">` qiymatidan ISO tamg'a. */
 export function localInputToIso(value: string): string {
-  if (!value) return new Date().toISOString();
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
+  if (!isLocalDateTime(value)) throw new RangeError("Invalid date and time");
+  return new Date(value + "+05:00").toISOString();
 }
 
 /** ISO tamg'adan `<input type="datetime-local">` qiymati. */
 export function isoToLocalInput(value?: string | null): string {
   const date = value ? new Date(value) : new Date();
   if (Number.isNaN(date.getTime())) return "";
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+  return dateParts.format(date) + "T" + timeParts.format(date);
 }

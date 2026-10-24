@@ -31,51 +31,57 @@ export function Stepper({ steps, current, className }: StepperProps) {
   );
 
   return (
-    <ol className={cn("flex items-center", className)}>
-      {steps.map((step, index) => {
-        const done = index < activeIndex;
-        const active = index === activeIndex;
+    <div className={className}>
+      <ol className="flex items-center">
+        {steps.map((step, index) => {
+          const done = index < activeIndex;
+          const active = index === activeIndex;
 
-        return (
-          <Fragment key={step.key}>
-            {index > 0 ? (
-              <li aria-hidden className="mx-2 h-px min-w-4 flex-1 overflow-hidden bg-border">
+          return (
+            <Fragment key={step.key}>
+              {index > 0 ? (
+                <li aria-hidden className="mx-2 h-px min-w-4 flex-1 overflow-hidden bg-border">
+                  <span
+                    className={cn(
+                      "block h-full origin-left bg-brand transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                      done || active ? "scale-x-100" : "scale-x-0",
+                    )}
+                  />
+                </li>
+              ) : null}
+
+              <li
+                className="flex shrink-0 items-center gap-2"
+                aria-current={active ? "step" : undefined}
+                aria-label={step.label}
+              >
                 <span
                   className={cn(
-                    "block h-full origin-left bg-brand transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
-                    done || active ? "scale-x-100" : "scale-x-0",
+                    "grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 text-xs font-bold transition-colors duration-300",
+                    done && "border-brand bg-brand text-brand-foreground",
+                    active &&
+                      "animate-[step-pop_0.4s_ease-out] border-brand bg-brand text-brand-foreground",
+                    !done && !active && "border-border bg-card text-muted-foreground",
                   )}
-                />
+                >
+                  {done ? <Check aria-hidden className="h-4 w-4" /> : index + 1}
+                </span>
+                <span
+                  className={cn(
+                    "hidden text-sm transition-colors duration-300 sm:block",
+                    active ? "font-bold text-foreground" : "font-medium text-muted-foreground",
+                  )}
+                >
+                  {step.label}
+                </span>
               </li>
-            ) : null}
-
-            <li
-              className="flex shrink-0 items-center gap-2"
-              aria-current={active ? "step" : undefined}
-            >
-              <span
-                className={cn(
-                  "grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 text-xs font-bold transition-colors duration-300",
-                  done && "border-brand bg-brand text-brand-foreground",
-                  active &&
-                    "animate-[step-pop_0.4s_ease-out] border-brand bg-brand text-brand-foreground",
-                  !done && !active && "border-border bg-card text-muted-foreground",
-                )}
-              >
-                {done ? <Check aria-hidden className="h-4 w-4" /> : index + 1}
-              </span>
-              <span
-                className={cn(
-                  "hidden text-sm transition-colors duration-300 sm:block",
-                  active ? "font-bold text-foreground" : "font-medium text-muted-foreground",
-                )}
-              >
-                {step.label}
-              </span>
-            </li>
-          </Fragment>
-        );
-      })}
-    </ol>
+            </Fragment>
+          );
+        })}
+      </ol>
+      <p className="mt-2 text-sm font-semibold text-foreground sm:hidden" aria-live="polite">
+        {steps[activeIndex]?.label}
+      </p>
+    </div>
   );
 }

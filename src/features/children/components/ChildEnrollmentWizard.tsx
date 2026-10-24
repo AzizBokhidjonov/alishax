@@ -12,7 +12,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Field } from "@/components/forms/FormDialog";
 import { SelectField } from "@/components/common/SelectField";
 import { Badge } from "@/components/common/StatusBadge";
@@ -20,7 +19,7 @@ import { Stepper } from "@/components/common/Stepper";
 import { childSchema, type ChildFormValues } from "@/components/forms/schemas";
 import { useEntityForm } from "@/hooks/use-entity-form";
 import { useFieldError } from "@/hooks/use-field-error";
-import { todayIso } from "@/lib/dates";
+import { isCalendarDate, todayIso } from "@/lib/dates";
 import { useBranchOptions } from "@/features/settings/api";
 import { useAssignChildToGroup, useGroupOptions } from "@/features/groups/api";
 import { useCreateChild } from "../api";
@@ -32,16 +31,6 @@ type Step = "child" | "group" | "guardian";
 
 const STEP_ORDER: Step[] = ["child", "group", "guardian"];
 
-/**
- * Bola qabul qilish ustasi — backend oqimini bir ekranda ketma-ket bajaradi:
- *
- * 1. `POST /children` — bolaning o'zi (guruh maydoni yo'q: guruh a'zoligi
- *    vaqtinchalik tarix, bolaning xossasi emas).
- * 2. `POST /groups/:id/children` — biriktirish, `effectiveDate` bilan.
- *    O'tkazib yuborilishi mumkin: bola navbatda turishi normal holat.
- * 3. `POST /guardians` (+ `409 DUPLICATE` da mavjudini qayta ishlatish) va
- *    `POST /children/:id/guardians` — bog'lash.
- */
 export function ChildEnrollmentWizard({ trigger }: { trigger: ReactNode }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -51,6 +40,7 @@ export function ChildEnrollmentWizard({ trigger }: { trigger: ReactNode }) {
   const assign = useAssignChildToGroup();
 
   const [open, setOpen] = useState(false);
+  const [guardianBusy, setGuardianBusy] = useState(false);
   const [step, setStep] = useState<Step>("child");
   const [child, setChild] = useState<{ id: string; name: string } | null>(null);
   const [groupId, setGroupId] = useState("");
@@ -69,7 +59,6 @@ export function ChildEnrollmentWizard({ trigger }: { trigger: ReactNode }) {
     onSubmit: async (values) => {
       const created = await createChild.mutateAsync(values);
       setChild({ id: created.id, name: `${values.lastName} ${values.firstName}` });
-      toast.success(t("enroll.created"));
       setStep("group");
     },
   });
@@ -77,15 +66,24 @@ export function ChildEnrollmentWizard({ trigger }: { trigger: ReactNode }) {
   const error = useFieldError(form.form.formState.errors);
 
   const reset = () => {
+    form.form.reset({
+      branchId: branches[0]?.value ?? "",
+      firstName: "",
+      lastName: "",
+      birthDate: "",
+      enrollmentDate: todayIso(),
+    });
+    assign.reset();
     setStep("child");
     setChild(null);
     setGroupId("");
     setLinked([]);
+    setGuardianBusy(false);
     setEffectiveDate(todayIso());
   };
 
   const assignGroup = () => {
-    if (!child || !groupId) return;
+    if (!child || !groupId || !isCalendarDate(effectiveDate) || assign.isPending) return;
     assign.mutate(
       { groupId, dto: { childId: child.id, effectiveDate } },
       { onSuccess: () => setStep("guardian") },
@@ -106,8 +104,9 @@ export function ChildEnrollmentWizard({ trigger }: { trigger: ReactNode }) {
     <Dialog
       open={open}
       onOpenChange={(next) => {
+        if (form.pending || assign.isPending || guardianBusy) return;
+        if (next) reset();
         setOpen(next);
-        if (!next) reset();
       }}
     >
       <DialogTrigger asChild>{trigger}</DialogTrigger>
@@ -117,17 +116,10 @@ export function ChildEnrollmentWizard({ trigger }: { trigger: ReactNode }) {
             <DialogTitle>{t("enroll.title")}</DialogTitle>
             <DialogDescription>{t("enroll.hint")}</DialogDescription>
           </div>
-          {/*
-            Qadamlar chizig'i sarlavha bilan birga qotib turadi: forma
-            skroll qilinganda ham «nechanchi qadamdaman» ko'rinib turadi.
-          */}
+
           <Stepper steps={steps} current={step} />
         </DialogHeader>
 
-        {/*
-          Har bir qadam o'z kaliti bilan qayta chiziladi — `key` almashgani
-          uchun React blokni yangidan yaratadi va u o'ngdan sirg'alib kiradi.
-        */}
         <div
           key={step}
           className="min-h-0 flex-1 animate-in space-y-4 overflow-y-auto px-6 py-5 fade-in-0 slide-in-from-right-4 duration-300"
@@ -157,6 +149,7 @@ export function ChildEnrollmentWizard({ trigger }: { trigger: ReactNode }) {
             <>
               <EnrollGuardianStep
                 childId={child.id}
+                onBusyChange={setGuardianBusy}
                 onLinked={(item) => setLinked((current) => [...current, item])}
               />
               {linked.length > 0 ? (
@@ -174,14 +167,9 @@ export function ChildEnrollmentWizard({ trigger }: { trigger: ReactNode }) {
         </div>
 
         <div className="flex shrink-0 flex-col-reverse gap-2 border-t border-border bg-secondary/30 px-6 py-4 sm:flex-row sm:items-center sm:justify-end">
-          {/*
-            Bola yaratilgandan keyin orqaga qaytib bo'lmaydi (u allaqachon
-            bazada), shuning uchun «Orqaga» faqat birinchi qadamda «Bekor
-            qilish» ga aylanadi — keyingi qadamlarda esa «O'tkazib yuborish».
-          */}
           {step === "child" ? (
             <>
-              <Button variant="ghost" onClick={() => setOpen(false)}>
+              <Button variant="ghost" disabled={form.pending} onClick={() => setOpen(false)}>
                 {t("common.actions.cancel")}
               </Button>
               <Button onClick={form.submit} disabled={!form.canSubmit} className="min-w-32">
@@ -194,11 +182,15 @@ export function ChildEnrollmentWizard({ trigger }: { trigger: ReactNode }) {
 
           {step === "group" ? (
             <>
-              <Button variant="ghost" onClick={() => setStep("guardian")}>
+              <Button
+                variant="ghost"
+                disabled={assign.isPending}
+                onClick={() => setStep("guardian")}
+              >
                 {t("enroll.skip")}
               </Button>
               <Button
-                disabled={!groupId || assign.isPending}
+                disabled={!groupId || !isCalendarDate(effectiveDate) || assign.isPending}
                 onClick={assignGroup}
                 className="min-w-32"
               >
@@ -211,21 +203,21 @@ export function ChildEnrollmentWizard({ trigger }: { trigger: ReactNode }) {
 
           {step === "guardian" ? (
             <>
-              {/*
-                Orqaga qaytish faqat guruh o'tkazib yuborilgan bo'lsa
-                ko'rinadi: biriktirish allaqachon bajarilgan bo'lsa, qayta
-                kirish ikkinchi a'zolik yozuvini yaratib qo'yardi.
-              */}
               {assign.isSuccess ? null : (
-                <Button variant="ghost" onClick={() => setStep("group")} className="sm:mr-auto">
+                <Button
+                  variant="ghost"
+                  disabled={guardianBusy}
+                  onClick={() => setStep("group")}
+                  className="sm:mr-auto"
+                >
                   <ArrowLeft className="h-4 w-4" />
                   {t("common.actions.back")}
                 </Button>
               )}
-              <Button variant="ghost" onClick={finish}>
+              <Button variant="ghost" disabled={guardianBusy} onClick={finish}>
                 {t("enroll.skip")}
               </Button>
-              <Button onClick={finish} className="min-w-32">
+              <Button disabled={guardianBusy} onClick={finish} className="min-w-32">
                 <UserPlus className="h-4 w-4" />
                 {t("enroll.finish")}
               </Button>
@@ -237,7 +229,6 @@ export function ChildEnrollmentWizard({ trigger }: { trigger: ReactNode }) {
   );
 }
 
-/** Qadamning maqsadini bir jumlada aytadigan izoh. */
 function StepNote({ children }: { children: ReactNode }) {
   return (
     <p className="rounded-xl border border-st-info-border bg-st-info-soft px-3.5 py-2.5 text-sm text-st-info-fg">

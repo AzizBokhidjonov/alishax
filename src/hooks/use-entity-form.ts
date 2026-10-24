@@ -4,6 +4,7 @@ import {
   type DefaultValues,
   type FieldValues,
   type Path,
+  type Resolver,
   type UseFormReturn,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,7 +13,7 @@ import { fieldErrors } from "@/api";
 
 export interface EntityFormOptions<T extends FieldValues> {
   /** Validatsiya sxemasi (server qoidalarini takrorlaydi). */
-  schema: ZodType<T, ZodTypeDef & { typeName: string }, T>;
+  schema: ZodType<T, ZodTypeDef & { typeName: string }, FieldValues>;
   /** Yangi yozuv uchun boshlang'ich qiymatlar. */
   defaults: T | (() => T);
   /** Berilsa — tahrirlash rejimi; forma shu yozuv bilan to'ldiriladi. */
@@ -52,9 +53,11 @@ export function useEntityForm<T extends FieldValues>({
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const isEditing = !!entity;
+  const submitting = useRef(false);
 
   const form = useForm<T>({
-    resolver: zodResolver(schema),
+    // Form controls may contain raw strings; the schema guarantees parsed output T.
+    resolver: zodResolver(schema) as Resolver<T>,
     defaultValues: resolveDefaults(defaults) as DefaultValues<T>,
     mode: "onChange",
   });
@@ -77,28 +80,37 @@ export function useEntityForm<T extends FieldValues>({
 
   const submit = useCallback(
     (event?: BaseSyntheticEvent) => {
-      void form.handleSubmit(async (values) => {
-        const current = latest.current;
-        setPending(true);
-        try {
-          await current.onSubmit(values, !!current.entity);
-          setOpen(false);
-        } catch (error) {
-          const errors = fieldErrors(error);
-          for (const [field, message] of Object.entries(errors)) {
-            form.setError(field as Path<T>, { type: "server", message });
+      event?.preventDefault();
+      if (submitting.current) return;
+      submitting.current = true;
+      void form
+        .handleSubmit(async (values) => {
+          const current = latest.current;
+          setPending(true);
+          try {
+            await current.onSubmit(values, !!current.entity);
+            setOpen(false);
+          } catch (error) {
+            const errors = fieldErrors(error);
+            for (const [field, message] of Object.entries(errors)) {
+              form.setError(field as Path<T>, { type: "server", message });
+            }
+          } finally {
+            setPending(false);
           }
-        } finally {
-          setPending(false);
-        }
-      })(event);
+        })(event)
+        .finally(() => {
+          submitting.current = false;
+        });
     },
     [form],
   );
 
   return {
     open,
-    setOpen,
+    setOpen: (next) => {
+      if (!submitting.current) setOpen(next);
+    },
     form,
     submit,
     isEditing,

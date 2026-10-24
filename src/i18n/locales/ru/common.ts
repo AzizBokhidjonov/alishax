@@ -147,6 +147,7 @@ export const common = {
     failed: "Не удалось подготовить экспорт",
   },
   validation: {
+    invalidValue: "Проверьте значение",
     required: "Обязательное поле",
     minLength: "Минимум {{count}} символов",
     maxLength: "Максимум {{count}} символов",

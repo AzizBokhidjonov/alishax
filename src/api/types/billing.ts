@@ -165,6 +165,8 @@ export interface Payment {
   note?: string;
   sign?: 1 | -1;
   cancelledAt?: IsoDateTime;
+  isCancelled?: boolean;
+  recordedByName?: string;
   cancelReason?: string;
   recordedBy?: string;
   allocations?: PaymentAllocation[];

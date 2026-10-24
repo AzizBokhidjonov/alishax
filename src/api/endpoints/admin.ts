@@ -1,5 +1,11 @@
 import { api, type QueryParams } from "../http";
 import { toPage } from "../types";
+import {
+  normalizeUserRole,
+  normalizeLoginHistory,
+  type UserRoleResponse,
+  type LoginHistoryResponse,
+} from "../adapters/users";
 import type {
   AssignRoleDto,
   AuditEntry,
@@ -28,8 +34,6 @@ import type {
   UpdateSettingsDto,
   UpdateUserDto,
   User,
-  UserRoleGrant,
-  LoginHistoryEntry,
 } from "../types";
 
 export interface UserListParams extends ListParams {
@@ -50,9 +54,13 @@ export const usersApi = {
   activate: (id: Id) => api.post<User>(`/users/${id}/activate`),
   deactivate: (id: Id) => api.post<User>(`/users/${id}/deactivate`),
 
-  loginHistory: (id: Id) => api.get<LoginHistoryEntry[]>(`/users/${id}/login-history`),
+  loginHistory: (id: Id) =>
+    api
+      .get<LoginHistoryResponse[]>(`/users/${id}/login-history`)
+      .then((rows) => rows.map(normalizeLoginHistory)),
 
-  roles: (id: Id) => api.get<UserRoleGrant[]>(`/users/${id}/roles`),
+  roles: (id: Id) =>
+    api.get<UserRoleResponse[]>(`/users/${id}/roles`).then((rows) => rows.map(normalizeUserRole)),
   assignRole: (id: Id, dto: AssignRoleDto) => api.post<void>(`/users/${id}/roles`, dto),
   removeRole: (id: Id, roleId: Id, branchId?: string) =>
     api.delete<void>(

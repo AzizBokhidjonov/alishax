@@ -1,7 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { GroupsPage } from "@/features/groups/GroupsPage";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/guruhlar")({
-  head: () => ({ meta: [{ title: "Guruhlar — Alishax Kids" }] }),
-  component: GroupsPage,
-});
+export const Route = createFileRoute("/guruhlar")({ component: Outlet });

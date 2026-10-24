@@ -95,7 +95,7 @@ export function ReportsPage() {
     <div className="space-y-6">
       <PageHeader title={t("reports.title")} />
 
-      <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
+      <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
         <ReportPicker
           selected={selected}
           onSelect={(report) => {
@@ -104,7 +104,7 @@ export function ReportsPage() {
           }}
         />
 
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base">{t("reports.filters")}</CardTitle>
@@ -203,7 +203,7 @@ export function ReportsPage() {
                 />
               ) : null}
 
-              <div className="ml-auto flex gap-2">
+              <div className="flex w-full flex-wrap gap-2 sm:ml-auto sm:w-auto">
                 <Button
                   className="h-11"
                   /* `finance/charges` davrsiz ishlamaydi — tugma to'siladi. */

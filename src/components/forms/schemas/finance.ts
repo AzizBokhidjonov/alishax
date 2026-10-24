@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   isoDate,
+  localDateTime,
   optionalId,
   optionalIsoDate,
   optionalSomAmount,
@@ -93,7 +94,7 @@ export const paymentSchema = z.object({
   payerGuardianId: optionalId,
   amountSom: somAmount,
   method: z.enum(["cash", "bank", "card", "online", "other"]),
-  paidAt: z.string().trim().min(1, "common.validation.required"),
+  paidAt: localDateTime,
   receiptNo: optionalText,
   bankRef: optionalText,
   attachmentFileId: optionalId,
@@ -129,7 +130,7 @@ export const expenseSchema = z.object({
 export type ExpenseFormValues = z.infer<typeof expenseSchema>;
 
 export const payExpenseSchema = z.object({
-  paidAt: z.string().trim().min(1, "common.validation.required"),
+  paidAt: localDateTime,
   amountSom: somAmount,
   attachmentFileId: optionalId,
 });

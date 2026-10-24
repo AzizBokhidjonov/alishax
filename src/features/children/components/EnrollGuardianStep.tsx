@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Link2, UserPlus } from "lucide-react";
@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Field } from "@/components/forms/FormDialog";
+import { phone as phoneSchema } from "@/components/forms/schemas/common";
 import { GuardianPicker } from "@/components/common/EntityPicker";
 import { useErrorToast } from "@/lib/query";
 import { createOrReuseGuardian } from "@/features/guardians/duplicate";
@@ -29,8 +30,10 @@ interface LinkedGuardian {
 export function EnrollGuardianStep({
   childId,
   onLinked,
+  onBusyChange,
 }: {
   childId: string;
+  onBusyChange?: (busy: boolean) => void;
   onLinked: (linked: LinkedGuardian) => void;
 }) {
   const { t } = useTranslation();
@@ -45,13 +48,18 @@ export function EnrollGuardianStep({
   const [isPrimary, setIsPrimary] = useState(true);
   const [isEmergency, setIsEmergency] = useState(false);
   const [busy, setBusy] = useState(false);
+  const submitting = useRef(false);
+  const phoneValid = phoneSchema.safeParse(phone).success;
 
   const canSubmit =
     relationship.trim().length > 0 &&
-    (mode === "existing" ? Boolean(existingId) : fullName.trim() !== "" && phone.trim() !== "");
+    (mode === "existing" ? Boolean(existingId) : fullName.trim() !== "" && phoneValid);
 
   const submit = async () => {
+    if (!canSubmit || submitting.current) return;
+    submitting.current = true;
     setBusy(true);
+    onBusyChange?.(true);
     try {
       let guardian: Guardian | { id: string; fullName: string };
       let reused = false;
@@ -84,12 +92,14 @@ export function EnrollGuardianStep({
     } catch (error) {
       showError(error);
     } finally {
+      submitting.current = false;
       setBusy(false);
+      onBusyChange?.(false);
     }
   };
 
   return (
-    <div className="space-y-3">
+    <fieldset disabled={busy} className="space-y-3">
       <p className="text-sm text-muted-foreground">{t("enroll.guardianHint")}</p>
 
       <div className="flex gap-2">
@@ -122,7 +132,11 @@ export function EnrollGuardianStep({
               onChange={(event) => setFullName(event.target.value)}
             />
           </Field>
-          <Field label={t("guardians.form.phone")} hint={t("guardians.form.phoneHint")}>
+          <Field
+            label={t("guardians.form.phone")}
+            hint={t("guardians.form.phoneHint")}
+            error={phone && !phoneValid ? t("common.validation.invalidPhone") : undefined}
+          >
             <Input
               className="h-11"
               value={phone}
@@ -170,6 +184,6 @@ export function EnrollGuardianStep({
           <Label className="cursor-pointer">{t("guardians.link.add")}</Label>
         </Button>
       </div>
-    </div>
+    </fieldset>
   );
 }

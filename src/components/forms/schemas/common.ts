@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isCalendarDate, isLocalDateTime } from "@/lib/dates";
 
 /**
  * Umumiy validatorlar. Xato matnlari i18n kaliti sifatida saqlanadi va
@@ -17,24 +18,27 @@ export const optionalText = z
   .optional()
   .transform((value) => (value === "" ? undefined : value));
 
-export const isoDate = z
+export const isoDate = z.string().trim().refine(isCalendarDate, "common.validation.invalidDate");
+
+export const localDateTime = z
   .string()
   .trim()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "common.validation.invalidDate");
+  .refine(isLocalDateTime, "common.validation.invalidDate");
 
 export const optionalIsoDate = z
   .string()
   .trim()
   .optional()
   .transform((value) => (value === "" ? undefined : value))
-  .refine((value) => !value || /^\d{4}-\d{2}-\d{2}$/.test(value), "common.validation.invalidDate");
+  .refine((value) => !value || isCalendarDate(value), "common.validation.invalidDate");
 
 /** Telefon: bo'sh joy va qavslar qabul qilinadi, server normallashtiradi. */
 export const phone = z
   .string()
   .trim()
   .min(7, "common.validation.invalidPhone")
-  .regex(/^[+0-9 ()-]+$/, "common.validation.invalidPhone");
+  .regex(/^[+0-9 ()-]+$/, "common.validation.invalidPhone")
+  .refine((value) => value.replace(/\D/g, "").length >= 7, "common.validation.invalidPhone");
 
 export const optionalEmail = z
   .string()
@@ -52,7 +56,7 @@ export const somAmount = z
   .trim()
   .min(1, "common.validation.required")
   .regex(/^\d+([.,]\d{1,2})?$/, "common.validation.invalidAmount")
-  .refine((value) => Number(value.replace(",", ".")) > 0, "common.validation.positiveAmount");
+  .refine((value) => /[1-9]/.test(value), "common.validation.positiveAmount");
 
 export const optionalSomAmount = z
   .string()

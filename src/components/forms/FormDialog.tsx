@@ -63,7 +63,12 @@ export function FormDialog({
   const defaultLabel = isEditing ? t("common.actions.save") : t("common.actions.add");
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!pending) onOpenChange(next);
+      }}
+    >
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className={cn("flex max-h-[90vh] flex-col gap-0 p-0", contentClassName)}>
         <DialogHeader className="shrink-0 border-b border-border px-6 py-5">
@@ -71,18 +76,33 @@ export function FormDialog({
           {description ? <DialogDescription>{description}</DialogDescription> : null}
         </DialogHeader>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">{children}</div>
+        <form
+          className="contents"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (canSubmit && !pending) onSubmit();
+          }}
+        >
+          <fieldset disabled={pending} className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+            {children}
+          </fieldset>
 
-        <div className="flex shrink-0 flex-col-reverse gap-2 border-t border-border bg-secondary/30 px-6 py-4 sm:flex-row sm:items-center sm:justify-end">
-          {footerStart ? <div className="sm:mr-auto">{footerStart}</div> : null}
-          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={pending}>
-            {t("common.actions.cancel")}
-          </Button>
-          <Button onClick={onSubmit} disabled={!canSubmit || pending} className="min-w-28">
-            {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            {submitLabel ?? defaultLabel}
-          </Button>
-        </div>
+          <div className="flex shrink-0 flex-col-reverse gap-2 border-t border-border bg-secondary/30 px-6 py-4 sm:flex-row sm:items-center sm:justify-end">
+            {footerStart ? <div className="sm:mr-auto">{footerStart}</div> : null}
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => onOpenChange(false)}
+              disabled={pending}
+            >
+              {t("common.actions.cancel")}
+            </Button>
+            <Button type="submit" disabled={!canSubmit || pending} className="min-w-28">
+              {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {submitLabel ?? defaultLabel}
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

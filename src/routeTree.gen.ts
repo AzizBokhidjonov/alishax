@@ -36,9 +36,13 @@ import { Route as XabarlarRouteImport } from './routes/xabarlar'
 import { Route as XabarnomalarRouteImport } from './routes/xabarnomalar'
 import { Route as XarajatlarRouteImport } from './routes/xarajatlar'
 import { Route as XodimlarRouteImport } from './routes/xodimlar'
+import { Route as BolalarIndexRouteImport } from './routes/bolalar.index'
 import { Route as BolalarIdRouteImport } from './routes/bolalar.$id'
+import { Route as GuruhlarIndexRouteImport } from './routes/guruhlar.index'
 import { Route as GuruhlarIdRouteImport } from './routes/guruhlar.$id'
+import { Route as OtaonalarIndexRouteImport } from './routes/otaonalar.index'
 import { Route as OtaonalarIdRouteImport } from './routes/otaonalar.$id'
+import { Route as XodimlarIndexRouteImport } from './routes/xodimlar.index'
 import { Route as XodimlarIdRouteImport } from './routes/xodimlar.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -176,20 +180,40 @@ const XodimlarRoute = XodimlarRouteImport.update({
   path: '/xodimlar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BolalarIndexRoute = BolalarIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => BolalarRoute,
+} as any)
 const BolalarIdRoute = BolalarIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => BolalarRoute,
+} as any)
+const GuruhlarIndexRoute = GuruhlarIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => GuruhlarRoute,
 } as any)
 const GuruhlarIdRoute = GuruhlarIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => GuruhlarRoute,
 } as any)
+const OtaonalarIndexRoute = OtaonalarIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => OtaonalarRoute,
+} as any)
 const OtaonalarIdRoute = OtaonalarIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => OtaonalarRoute,
+} as any)
+const XodimlarIndexRoute = XodimlarIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => XodimlarRoute,
 } as any)
 const XodimlarIdRoute = XodimlarIdRouteImport.update({
   id: '/$id',
@@ -229,15 +253,17 @@ export interface FileRoutesByFullPath {
   '/guruhlar/$id': typeof GuruhlarIdRoute
   '/otaonalar/$id': typeof OtaonalarIdRoute
   '/xodimlar/$id': typeof XodimlarIdRoute
+  '/bolalar/': typeof BolalarIndexRoute
+  '/guruhlar/': typeof GuruhlarIndexRoute
+  '/otaonalar/': typeof OtaonalarIndexRoute
+  '/xodimlar/': typeof XodimlarIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
-  '/bolalar': typeof BolalarRouteWithChildren
   '/boshqaruv': typeof BoshqaruvRoute
   '/davomat': typeof DavomatRoute
   '/davrlar': typeof DavrlarRoute
-  '/guruhlar': typeof GuruhlarRouteWithChildren
   '/hisoblar': typeof HisoblarRoute
   '/hisoblash': typeof HisoblashRoute
   '/hisobotlar': typeof HisobotlarRoute
@@ -245,7 +271,6 @@ export interface FileRoutesByTo {
   '/import': typeof ImportRoute
   '/kirish': typeof KirishRoute
   '/olibketish': typeof OlibketishRoute
-  '/otaonalar': typeof OtaonalarRouteWithChildren
   '/parolni-tiklash': typeof ParolniTiklashRoute
   '/qarzlar': typeof QarzlarRoute
   '/qollanma': typeof QollanmaRoute
@@ -257,11 +282,14 @@ export interface FileRoutesByTo {
   '/xabarlar': typeof XabarlarRoute
   '/xabarnomalar': typeof XabarnomalarRoute
   '/xarajatlar': typeof XarajatlarRoute
-  '/xodimlar': typeof XodimlarRouteWithChildren
   '/bolalar/$id': typeof BolalarIdRoute
   '/guruhlar/$id': typeof GuruhlarIdRoute
   '/otaonalar/$id': typeof OtaonalarIdRoute
   '/xodimlar/$id': typeof XodimlarIdRoute
+  '/bolalar': typeof BolalarIndexRoute
+  '/guruhlar': typeof GuruhlarIndexRoute
+  '/otaonalar': typeof OtaonalarIndexRoute
+  '/xodimlar': typeof XodimlarIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -296,6 +324,10 @@ export interface FileRoutesById {
   '/guruhlar/$id': typeof GuruhlarIdRoute
   '/otaonalar/$id': typeof OtaonalarIdRoute
   '/xodimlar/$id': typeof XodimlarIdRoute
+  '/bolalar/': typeof BolalarIndexRoute
+  '/guruhlar/': typeof GuruhlarIndexRoute
+  '/otaonalar/': typeof OtaonalarIndexRoute
+  '/xodimlar/': typeof XodimlarIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -331,15 +363,17 @@ export interface FileRouteTypes {
     | '/guruhlar/$id'
     | '/otaonalar/$id'
     | '/xodimlar/$id'
+    | '/bolalar/'
+    | '/guruhlar/'
+    | '/otaonalar/'
+    | '/xodimlar/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/audit'
-    | '/bolalar'
     | '/boshqaruv'
     | '/davomat'
     | '/davrlar'
-    | '/guruhlar'
     | '/hisoblar'
     | '/hisoblash'
     | '/hisobotlar'
@@ -347,7 +381,6 @@ export interface FileRouteTypes {
     | '/import'
     | '/kirish'
     | '/olibketish'
-    | '/otaonalar'
     | '/parolni-tiklash'
     | '/qarzlar'
     | '/qollanma'
@@ -359,11 +392,14 @@ export interface FileRouteTypes {
     | '/xabarlar'
     | '/xabarnomalar'
     | '/xarajatlar'
-    | '/xodimlar'
     | '/bolalar/$id'
     | '/guruhlar/$id'
     | '/otaonalar/$id'
     | '/xodimlar/$id'
+    | '/bolalar'
+    | '/guruhlar'
+    | '/otaonalar'
+    | '/xodimlar'
   id:
     | '__root__'
     | '/'
@@ -397,6 +433,10 @@ export interface FileRouteTypes {
     | '/guruhlar/$id'
     | '/otaonalar/$id'
     | '/xodimlar/$id'
+    | '/bolalar/'
+    | '/guruhlar/'
+    | '/otaonalar/'
+    | '/xodimlar/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -620,12 +660,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof XodimlarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bolalar/': {
+      id: '/bolalar/'
+      path: '/'
+      fullPath: '/bolalar/'
+      preLoaderRoute: typeof BolalarIndexRouteImport
+      parentRoute: typeof BolalarRoute
+    }
     '/bolalar/$id': {
       id: '/bolalar/$id'
       path: '/$id'
       fullPath: '/bolalar/$id'
       preLoaderRoute: typeof BolalarIdRouteImport
       parentRoute: typeof BolalarRoute
+    }
+    '/guruhlar/': {
+      id: '/guruhlar/'
+      path: '/'
+      fullPath: '/guruhlar/'
+      preLoaderRoute: typeof GuruhlarIndexRouteImport
+      parentRoute: typeof GuruhlarRoute
     }
     '/guruhlar/$id': {
       id: '/guruhlar/$id'
@@ -634,12 +688,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GuruhlarIdRouteImport
       parentRoute: typeof GuruhlarRoute
     }
+    '/otaonalar/': {
+      id: '/otaonalar/'
+      path: '/'
+      fullPath: '/otaonalar/'
+      preLoaderRoute: typeof OtaonalarIndexRouteImport
+      parentRoute: typeof OtaonalarRoute
+    }
     '/otaonalar/$id': {
       id: '/otaonalar/$id'
       path: '/$id'
       fullPath: '/otaonalar/$id'
       preLoaderRoute: typeof OtaonalarIdRouteImport
       parentRoute: typeof OtaonalarRoute
+    }
+    '/xodimlar/': {
+      id: '/xodimlar/'
+      path: '/'
+      fullPath: '/xodimlar/'
+      preLoaderRoute: typeof XodimlarIndexRouteImport
+      parentRoute: typeof XodimlarRoute
     }
     '/xodimlar/$id': {
       id: '/xodimlar/$id'
@@ -653,10 +721,12 @@ declare module '@tanstack/react-router' {
 
 interface BolalarRouteChildren {
   BolalarIdRoute: typeof BolalarIdRoute
+  BolalarIndexRoute: typeof BolalarIndexRoute
 }
 
 const BolalarRouteChildren: BolalarRouteChildren = {
   BolalarIdRoute: BolalarIdRoute,
+  BolalarIndexRoute: BolalarIndexRoute,
 }
 
 const BolalarRouteWithChildren =
@@ -664,10 +734,12 @@ const BolalarRouteWithChildren =
 
 interface GuruhlarRouteChildren {
   GuruhlarIdRoute: typeof GuruhlarIdRoute
+  GuruhlarIndexRoute: typeof GuruhlarIndexRoute
 }
 
 const GuruhlarRouteChildren: GuruhlarRouteChildren = {
   GuruhlarIdRoute: GuruhlarIdRoute,
+  GuruhlarIndexRoute: GuruhlarIndexRoute,
 }
 
 const GuruhlarRouteWithChildren = GuruhlarRoute._addFileChildren(
@@ -676,10 +748,12 @@ const GuruhlarRouteWithChildren = GuruhlarRoute._addFileChildren(
 
 interface OtaonalarRouteChildren {
   OtaonalarIdRoute: typeof OtaonalarIdRoute
+  OtaonalarIndexRoute: typeof OtaonalarIndexRoute
 }
 
 const OtaonalarRouteChildren: OtaonalarRouteChildren = {
   OtaonalarIdRoute: OtaonalarIdRoute,
+  OtaonalarIndexRoute: OtaonalarIndexRoute,
 }
 
 const OtaonalarRouteWithChildren = OtaonalarRoute._addFileChildren(
@@ -688,10 +762,12 @@ const OtaonalarRouteWithChildren = OtaonalarRoute._addFileChildren(
 
 interface XodimlarRouteChildren {
   XodimlarIdRoute: typeof XodimlarIdRoute
+  XodimlarIndexRoute: typeof XodimlarIndexRoute
 }
 
 const XodimlarRouteChildren: XodimlarRouteChildren = {
   XodimlarIdRoute: XodimlarIdRoute,
+  XodimlarIndexRoute: XodimlarIndexRoute,
 }
 
 const XodimlarRouteWithChildren = XodimlarRoute._addFileChildren(

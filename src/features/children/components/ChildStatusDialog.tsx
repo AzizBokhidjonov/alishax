@@ -30,7 +30,7 @@ export function ChildStatusDialog({ child }: { child: Child }) {
 
   const form = useEntityForm<ChildStatusFormValues>({
     schema: childStatusSchema,
-    defaults: () => ({ status: child.status, effectiveDate: todayIso(), reason: undefined }),
+    defaults: () => ({ status: child.status, effectiveDate: todayIso(), reason: "" }),
     onSubmit: async (values) => {
       await setStatus.mutateAsync(values);
     },
@@ -69,11 +69,12 @@ export function ChildStatusDialog({ child }: { child: Child }) {
         />
         <Field label={t("children.status.effectiveDate")} error={error("effectiveDate")}>
           <DatePicker
+            max={todayIso()}
             value={watch("effectiveDate") ?? ""}
             onChange={(value) => setValue("effectiveDate", value, { shouldValidate: true })}
           />
         </Field>
-        <Field label={t("children.status.reason")} error={error("reason")}>
+        <Field label={t("children.status.reason")} error={error("reason")} required>
           <Textarea rows={3} {...register("reason")} />
         </Field>
       </div>

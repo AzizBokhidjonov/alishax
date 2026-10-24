@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { todayIso } from "@/lib/dates";
 import {
   isoDate,
   optionalEmail,
@@ -35,8 +36,8 @@ export const childStatusSchema = z.object({
     "withdrawn",
     "archived",
   ]),
-  effectiveDate: isoDate,
-  reason: optionalText,
+  effectiveDate: isoDate.refine((value) => value <= todayIso(), "common.validation.invalidDate"),
+  reason: requiredText(),
 });
 export type ChildStatusFormValues = z.infer<typeof childStatusSchema>;
 
@@ -124,8 +125,14 @@ export type GuardianLinkFormValues = z.infer<typeof guardianLinkSchema>;
 export const groupSchema = z.object({
   branchId: requiredId,
   name: requiredText(),
-  ageMinMonths: z.coerce.number().int().min(0).optional(),
-  ageMaxMonths: z.coerce.number().int().min(0).optional(),
+  ageMinMonths: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.coerce.number().int().min(0).optional(),
+  ),
+  ageMaxMonths: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.coerce.number().int().min(0).optional(),
+  ),
   capacity: z.coerce.number().int().min(1),
   open: optionalText,
   close: optionalText,

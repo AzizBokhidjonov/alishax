@@ -2,6 +2,7 @@ import { api, requestExport, type QueryParams } from "../http";
 import { toPage } from "../types";
 import { normalizeChildDebt, normalizeDebtRow, normalizeDebtSummary } from "../adapters/debts";
 import { normalizePayment, type PaymentResponse } from "../adapters/payments";
+import { normalizeCharge, type ChargeResponse } from "../adapters/charges";
 import {
   normalizeBillingRun,
   normalizeBillingExplanation,
@@ -121,10 +122,17 @@ export interface ChargeListParams extends ListParams {
 
 export const chargesApi = {
   async list(params: ChargeListParams = {}): Promise<Paginated<Charge>> {
-    const response = await api.get<Paginated<Charge> | Charge[]>("/charges", params as QueryParams);
-    return toPage(response);
+    const response = await api.get<Paginated<ChargeResponse> | ChargeResponse[]>(
+      "/charges",
+      params as QueryParams,
+    );
+    const page = toPage(response);
+    return { ...page, data: page.data.map(normalizeCharge) };
   },
-  ofChild: (childId: Id) => api.get<Charge[]>(`/children/${childId}/charges`),
+  ofChild: (childId: Id) =>
+    api
+      .get<ChargeResponse[]>(`/children/${childId}/charges`)
+      .then((rows) => rows.map(normalizeCharge)),
   createManual: (dto: CreateManualChargeDto) => api.post<Charge>("/charges", dto),
 
   /**

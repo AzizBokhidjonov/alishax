@@ -148,6 +148,7 @@ export const common = {
     failed: "Eksportni tayyorlab bo'lmadi",
   },
   validation: {
+    invalidValue: "Qiymatni tekshiring",
     required: "Bu maydon to'ldirilishi kerak",
     minLength: "Kamida {{count}} ta belgi",
     maxLength: "Ko'pi bilan {{count}} ta belgi",

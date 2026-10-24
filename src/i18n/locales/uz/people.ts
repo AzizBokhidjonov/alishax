@@ -234,9 +234,9 @@ export const enroll = {
   title: "Yangi bola qabul qilish",
   hint: "Uch qadam: bola yaratiladi, guruhga biriktiriladi, ota-ona bog'lanadi.",
   steps: {
-    child: "1. Bola ma'lumotlari",
-    group: "2. Guruhga biriktirish",
-    guardian: "3. Ota-ona",
+    child: "Bola ma'lumotlari",
+    group: "Guruhga biriktirish",
+    guardian: "Ota-ona",
   },
   created: "Bola yaratildi",
   next: "Keyingi",

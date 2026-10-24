@@ -23,7 +23,7 @@ import { UserLoginHistoryTab, UserOverridesTab, UserPermissionsTab } from "./com
 import { useRemoveUserRole, useUser, useUserRoles } from "./api";
 
 export function UserDetailPage({ userId }: { userId: string }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { can } = usePermissions();
   const user = useUser(userId);
   const roles = useUserRoles(userId);
@@ -92,7 +92,9 @@ export function UserDetailPage({ userId }: { userId: string }) {
                               <TableCell className="font-medium">
                                 {grant.code
                                   ? t(roleLabelKey(grant.code), {
-                                      defaultValue: grant.nameUz ?? grant.code,
+                                      defaultValue:
+                                        (i18n.language === "ru" ? grant.nameRu : grant.nameUz) ??
+                                        grant.code,
                                     })
                                   : grant.roleId}
                               </TableCell>
