@@ -192,6 +192,7 @@ export function PaymentsPage() {
                     <div className="inline-flex gap-1">
                       <PaymentDetailDialog
                         paymentId={payment.id}
+                        childName={payment.childName}
                         label={`${payment.childName ?? ""} ${formatDateTime(payment.paidAt)}`.trim()}
                       />
                       <Button

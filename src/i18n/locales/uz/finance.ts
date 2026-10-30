@@ -78,8 +78,8 @@ export const periods = {
 
 export const billing = {
   unfinished: {
-    title: "Tugallanmagan hisoblashlar",
-    hint: "Oldindan ko'rish serverda saqlanadi — yarim qolgan ishni boshidan hisoblash kerak emas.",
+    title: "Saqlangan hisob-kitoblar",
+    hint: "Loyihani davom ettiring yoki tasdiqlangan hisob-kitobni oching.",
     resume: "Davom ettirish",
   },
   title: "Hisoblash",

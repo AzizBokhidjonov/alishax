@@ -1,3 +1,6 @@
+import { paymentsApi } from "@/api";
+import { chargeLabel } from "@/lib/billing-labels";
+import { useExport } from "@/hooks/use-export";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Eye } from "lucide-react";
@@ -28,9 +31,18 @@ import { usePayment } from "../api";
  * `label` — ochish tugmasining ekran o'quvchi uchun nomi, usiz har bir
  * qatorda bir xil nomsiz tugma chiqadi.
  */
-export function PaymentDetailDialog({ paymentId, label }: { paymentId: string; label: string }) {
+export function PaymentDetailDialog({
+  paymentId,
+  label,
+  childName,
+}: {
+  paymentId: string;
+  label: string;
+  childName?: string;
+}) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const exporter = useExport();
   const { data, isLoading, error } = usePayment(open ? paymentId : "");
 
   return (
@@ -50,7 +62,9 @@ export function PaymentDetailDialog({ paymentId, label }: { paymentId: string; l
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <div className="text-muted-foreground">{t("payments.columns.child")}</div>
-                  <div className="font-medium">{data.childName ?? data.childId}</div>
+                  <div className="font-medium">
+                    {data.childName ?? childName ?? t("flows.unknownName")}
+                  </div>
                 </div>
                 <div>
                   <div className="text-muted-foreground">{t("payments.columns.amount")}</div>
@@ -86,7 +100,13 @@ export function PaymentDetailDialog({ paymentId, label }: { paymentId: string; l
                       {data.allocations.map((allocation) => (
                         <TableRow key={allocation.chargeId}>
                           <TableCell>
-                            {allocation.chargeDescription ?? allocation.chargeId}
+                            {chargeLabel(
+                              {
+                                description: allocation.chargeDescription,
+                                kind: allocation.chargeKind,
+                              },
+                              t,
+                            )}
                           </TableCell>
                           <TableCell>
                             <Money value={allocation.amountTiyin} />
@@ -108,6 +128,20 @@ export function PaymentDetailDialog({ paymentId, label }: { paymentId: string; l
                   <Money value={data.advanceTiyin} className="font-semibold" />
                 </div>
               ) : null}
+
+              <Button
+                variant="outline"
+                disabled={exporter.busy}
+                onClick={() =>
+                  void exporter.start(
+                    () => paymentsApi.receipt(paymentId, "pdf"),
+                    `receipt-${paymentId}.pdf`,
+                    "open",
+                  )
+                }
+              >
+                {t("payments.receipt.action")}
+              </Button>
 
               {data.cancelReason ? (
                 <div className="rounded-xl border border-st-danger-border bg-st-danger-soft p-3 text-sm text-st-danger-fg">

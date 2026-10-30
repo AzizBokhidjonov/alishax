@@ -176,6 +176,7 @@ export function usePreviewBilling() {
     mutationFn: ({ year, month }: { year: number; month: number }) =>
       billingApi.preview(year, month),
     successMessage: t("billing.preview.created"),
+    invalidate: [["billing-runs"]],
   });
 }
 
@@ -185,7 +186,14 @@ export function useCommitBilling() {
     mutationFn: ({ id, idempotencyKey }: { id: string; idempotencyKey: string }) =>
       billingApi.commit(id, idempotencyKey),
     successMessage: t("billing.commit.done"),
-    invalidate: [["charges"], ["debts"], ["periods"]],
+    invalidate: [
+      ["charges"],
+      ["charge-ledger"],
+      ["debts"],
+      ["periods"],
+      ["billing-runs"],
+      ["billing", "run"],
+    ],
   });
 }
 
@@ -209,5 +217,6 @@ export function useDiscardBilling() {
   return useApiMutation({
     mutationFn: (id: string) => billingApi.discard(id),
     successMessage: t("billing.preview.discarded"),
+    invalidate: [["billing-runs"]],
   });
 }

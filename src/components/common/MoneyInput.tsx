@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
 import { Field } from "@/components/forms/FormDialog";
@@ -29,11 +30,14 @@ export function MoneyInput({
   autoFocus,
 }: MoneyInputProps) {
   const { t } = useTranslation();
+  const id = useId();
   const preview = value.trim() ? formatTiyin(toTiyin(value)) : null;
 
   return (
-    <Field label={label} error={error} className={className}>
+    <Field label={label} error={error} className={className} htmlFor={id}>
       <Input
+        id={id}
+        aria-invalid={Boolean(error)}
         className="h-11 text-right tabular-nums"
         inputMode="decimal"
         autoFocus={autoFocus}

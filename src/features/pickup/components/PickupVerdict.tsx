@@ -1,3 +1,4 @@
+import { relationshipLabel } from "@/lib/relationships";
 import { useTranslation } from "react-i18next";
 import { AlertCircle, Phone, ShieldCheck, ShieldX } from "lucide-react";
 import type { PickupRecipient, PickupVerifyResult } from "@/api";
@@ -96,7 +97,9 @@ export function PickupVerdict({ childId, recipient, data, isLoading, error }: Pi
 
         <div className="font-medium">{name}</div>
         {person?.relationship ? (
-          <div className="text-sm text-muted-foreground">{person.relationship}</div>
+          <div className="text-sm text-muted-foreground">
+            {relationshipLabel(person.relationship, t)}
+          </div>
         ) : null}
         {person?.phone ? <div className="text-sm text-muted-foreground">{person.phone}</div> : null}
 

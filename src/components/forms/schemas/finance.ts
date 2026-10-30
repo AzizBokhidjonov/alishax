@@ -30,11 +30,16 @@ export const tariffSchema = z.object({
 });
 export type TariffFormValues = z.infer<typeof tariffSchema>;
 
-export const assignTariffSchema = z.object({
-  tariffId: requiredId,
-  effectiveFrom: isoDate,
-  effectiveTo: optionalIsoDate,
-});
+export const assignTariffSchema = z
+  .object({
+    tariffId: requiredId,
+    effectiveFrom: isoDate,
+    effectiveTo: optionalIsoDate,
+  })
+  .refine((values) => !values.effectiveTo || values.effectiveTo >= values.effectiveFrom, {
+    path: ["effectiveTo"],
+    message: "flows.dateOrder",
+  });
 export type AssignTariffFormValues = z.infer<typeof assignTariffSchema>;
 
 export const discountSchema = z
@@ -53,6 +58,10 @@ export const discountSchema = z
   .refine((values) => values.kind !== "percent" || Number(values.value.replace(",", ".")) <= 100, {
     path: ["value"],
     message: "common.validation.invalidAmount",
+  })
+  .refine((values) => !values.validTo || values.validTo >= values.validFrom, {
+    path: ["validTo"],
+    message: "flows.dateOrder",
   });
 export type DiscountFormValues = z.infer<typeof discountSchema>;
 

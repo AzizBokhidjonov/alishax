@@ -26,7 +26,7 @@ export const qk = {
   childGuardians: (id: string) => ["children", id, "guardians"] as const,
   childTariffs: (id: string) => ["children", id, "tariffs"] as const,
   childDiscounts: (id: string) => ["children", id, "discounts"] as const,
-  childCharges: (id: string) => ["children", id, "charges"] as const,
+  childCharges: (id: string) => ["charges", "child", id] as const,
   childPickup: (id: string) => ["children", id, "pickup"] as const,
   documentsExpiring: (days: number) => ["documents", "expiring", days] as const,
 

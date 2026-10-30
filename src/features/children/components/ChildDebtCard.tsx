@@ -59,7 +59,14 @@ export function ChildDebtCard({ debt, childId, childName }: ChildDebtCardProps) 
 
       <CardContent className="space-y-3">
         <div>
-          <Money value={debt.currentDebt} className="text-2xl font-bold" colored />
+          <Money
+            value={debt.currentDebt}
+            className={
+              toBigInt(debt.currentDebt) > 0n
+                ? "text-2xl font-bold text-st-danger-fg"
+                : "text-2xl font-bold"
+            }
+          />
         </div>
 
         <div>

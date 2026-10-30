@@ -58,7 +58,7 @@ export const children = {
   },
   status: {
     change: "Holatni o'zgartirish",
-    hint: "Holat PATCH orqali emas, alohida amal bilan o'zgartiriladi va tarixga yoziladi.",
+    hint: "Yangi holat, kuchga kirish sanasi va sababni kiriting. O‘zgarish bolaning tarixida saqlanadi.",
     effectiveDate: "Kuchga kirish sanasi",
     reason: "Sabab",
     changed: "Holat o'zgartirildi",
@@ -121,7 +121,6 @@ export const children = {
     empty: "Tarix bo'sh",
   },
 };
-
 export const guardians = {
   title: "Ota-onalar",
   subtitle: "Jami {{count}} ta ota-ona",
@@ -174,7 +173,6 @@ export const guardians = {
   },
   childrenTitle: "Bog'langan bolalar",
 };
-
 export const groups = {
   title: "Guruhlar",
   subtitle: "Jami {{count}} ta guruh",
@@ -229,7 +227,6 @@ export const groups = {
   },
   historyEmpty: "Guruh tarixi bo'sh",
 };
-
 export const enroll = {
   title: "Yangi bola qabul qilish",
   hint: "Uch qadam: bola yaratiladi, guruhga biriktiriladi, ota-ona bog'lanadi.",

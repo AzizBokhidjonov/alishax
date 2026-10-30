@@ -1,3 +1,4 @@
+import { relationshipLabel } from "@/lib/relationships";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { permissionHolderName, type PickupRecipient } from "@/api";
@@ -163,11 +164,7 @@ export function PickupRecipientPicker({
                 name={guardian.fullName}
                 detail={
                   [
-                    guardian.relationship
-                      ? t(`domain.relationship.${guardian.relationship}`, {
-                          defaultValue: guardian.relationship,
-                        })
-                      : undefined,
+                    guardian.relationship ? relationshipLabel(guardian.relationship, t) : undefined,
                     guardian.phone,
                   ]
                     .filter(Boolean)
@@ -200,7 +197,9 @@ export function PickupRecipientPicker({
                   photoUrl={item.pickupPerson?.photoUrl}
                   detail={
                     [
-                      item.pickupPerson?.relationship,
+                      item.pickupPerson?.relationship
+                        ? relationshipLabel(item.pickupPerson.relationship, t)
+                        : undefined,
                       item.pickupPerson ? undefined : t("pickup.recipients.adhoc"),
                       item.adhocPhone ?? item.pickupPerson?.phone,
                     ]

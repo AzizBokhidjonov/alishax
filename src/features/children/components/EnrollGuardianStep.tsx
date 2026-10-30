@@ -1,3 +1,4 @@
+import { RelationshipField } from "@/components/common/RelationshipField";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -107,7 +108,10 @@ export function EnrollGuardianStep({
           type="button"
           variant={mode === "new" ? "default" : "outline"}
           size="sm"
-          onClick={() => setMode("new")}
+          onClick={() => {
+            setMode("new");
+            setFullName("");
+          }}
         >
           <UserPlus className="mr-1 h-4 w-4" />
           {t("guardians.add")}
@@ -116,7 +120,11 @@ export function EnrollGuardianStep({
           type="button"
           variant={mode === "existing" ? "default" : "outline"}
           size="sm"
-          onClick={() => setMode("existing")}
+          onClick={() => {
+            setMode("existing");
+            setFullName("");
+            setExistingId("");
+          }}
         >
           <Link2 className="mr-1 h-4 w-4" />
           {t("guardians.duplicate.link")}
@@ -134,7 +142,7 @@ export function EnrollGuardianStep({
           </Field>
           <Field
             label={t("guardians.form.phone")}
-            hint={t("guardians.form.phoneHint")}
+            hint={t("flows.phoneHint")}
             error={phone && !phoneValid ? t("common.validation.invalidPhone") : undefined}
           >
             <Input
@@ -149,17 +157,11 @@ export function EnrollGuardianStep({
           label={t("common.labels.guardian")}
           value={existingId}
           onChange={setExistingId}
+          onSelectLabel={setFullName}
         />
       )}
 
-      <Field label={t("guardians.link.relationship")}>
-        <Input
-          className="h-11"
-          placeholder="mother"
-          value={relationship}
-          onChange={(event) => setRelationship(event.target.value)}
-        />
-      </Field>
+      <RelationshipField value={relationship} onChange={setRelationship} />
 
       <div className="flex flex-wrap gap-4">
         <label className="flex items-center gap-2 text-sm">

@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/common/StatusBadge";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
-import { EmptyState } from "@/components/common/EmptyState";
 import { Money } from "@/components/common/Money";
 import { FilterBar } from "@/components/common/FilterBar";
 import { TableCard } from "@/components/common/TableCard";
@@ -107,7 +106,6 @@ export function BillingRunTab() {
               idempotency.reset();
             }}
           />
-          <EmptyState icon={Calculator} title={t("billing.preview.empty")} />
         </div>
       ) : (
         <>
@@ -206,7 +204,7 @@ export function BillingRunTab() {
                           params={{ id: line.childId }}
                           className={cn("rounded-sm hover:underline", focusRing)}
                         >
-                          {line.childName ?? line.childId}
+                          {line.childName ?? t("flows.unknownName")}
                         </Link>
                         {line.warnings && line.warnings.length > 0 ? (
                           <span

@@ -130,7 +130,8 @@ export function ChildEnrollmentWizard({ trigger }: { trigger: ReactNode }) {
 
           {step === "group" ? (
             <>
-              <StepNote>{t("enroll.groupHint")}</StepNote>
+              <StepNote>{t("flows.setupSaved")}</StepNote>
+              <p className="text-sm text-muted-foreground">{t("enroll.groupHint")}</p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <SelectField
                   label={t("common.labels.group")}
@@ -174,7 +175,7 @@ export function ChildEnrollmentWizard({ trigger }: { trigger: ReactNode }) {
               </Button>
               <Button onClick={form.submit} disabled={!form.canSubmit} className="min-w-32">
                 {form.pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                {t("enroll.next")}
+                {t("flows.createContinue")}
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </>

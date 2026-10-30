@@ -95,7 +95,11 @@ test("payment detail exposes allocations and the exact unallocated balance", asy
     method: "cash",
     paidAt: "2026-10-23T03:00:00Z",
     paymentAllocation: [
-      { chargeId: "charge", amountTiyin: "150000000", charge: { description: "October tuition" } },
+      {
+        chargeId: "charge",
+        amountTiyin: "150000000",
+        charge: { description: "October tuition", kind: "monthly_fixed" },
+      },
     ],
   });
   const result = await h.endpoints.paymentsApi.get("payment");
@@ -104,6 +108,7 @@ test("payment detail exposes allocations and the exact unallocated balance", asy
       chargeId: "charge",
       amountTiyin: "150000000",
       chargeDescription: "October tuition",
+      chargeKind: "monthly_fixed",
     },
   ]);
   assert.equal(result.advanceTiyin, "50000001");

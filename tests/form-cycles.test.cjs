@@ -127,7 +127,7 @@ test("enrollment clears canceled child details and assignment state on every new
     await change(view.container.querySelector("[name=lastName]"), "Child");
     await change(view.container.querySelector("[name=birthDate]"), "2021-01-01");
     const next = [...view.container.querySelectorAll("button")].find((b) =>
-      b.textContent.includes("enroll.next"),
+      b.textContent.includes("flows.createContinue"),
     );
     await React.act(async () => next.click());
     assert.equal(created.length, 1);
@@ -139,7 +139,7 @@ test("enrollment clears canceled child details and assignment state on every new
     assert.equal(resets, 2);
     assert.equal(
       [...view.container.querySelectorAll("button")].find((b) =>
-        b.textContent.includes("enroll.next"),
+        b.textContent.includes("flows.createContinue"),
       ).disabled,
       true,
     );

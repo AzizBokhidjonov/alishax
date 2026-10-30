@@ -6,7 +6,7 @@ export interface PaymentResponse extends Omit<Payment, "allocations" | "advanceT
   guardian?: { fullName: string } | null;
   otherPayment?: { id: string }[];
   paymentAllocation?: (PaymentAllocation & {
-    charge?: { description?: string | null } | null;
+    charge?: { description?: string | null; kind?: string } | null;
   })[];
 }
 
@@ -18,6 +18,7 @@ export function normalizePayment(response: PaymentResponse): Payment {
     chargeId: allocation.chargeId,
     amountTiyin: allocation.amountTiyin,
     chargeDescription: allocation.charge?.description ?? undefined,
+    chargeKind: allocation.charge?.kind,
   }));
   return {
     ...response,

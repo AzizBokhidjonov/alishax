@@ -1,3 +1,4 @@
+import { relationshipLabel } from "@/lib/relationships";
 import { useTranslation } from "react-i18next";
 import { permissionHolderName } from "@/api";
 import { Ban } from "lucide-react";
@@ -127,7 +128,9 @@ export function PickupPersonsPanel({
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>{person.relationship ?? "—"}</TableCell>
+                      <TableCell>
+                        {person.relationship ? relationshipLabel(person.relationship, t) : "—"}
+                      </TableCell>
                       <TableCell>
                         <Badge tone={person.permissionType === "permanent" ? "ok" : "info"}>
                           {t(`domain.permissionType.${person.permissionType}`)}

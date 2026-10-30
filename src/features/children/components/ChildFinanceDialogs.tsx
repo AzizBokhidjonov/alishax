@@ -114,7 +114,7 @@ export function DiscountDialog({ childId }: { childId: string }) {
         </Button>
       }
       title={t("tariffs.discounts.add")}
-      description={t("tariffs.discounts.sensitive")}
+      description={t("flows.discountHint")}
       onSubmit={form.submit}
       canSubmit={form.canSubmit}
       pending={form.pending}
@@ -123,16 +123,17 @@ export function DiscountDialog({ childId }: { childId: string }) {
         <SelectField
           label={t("tariffs.discounts.kind")}
           value={kind}
-          onChange={(value) =>
-            setValue("kind", value as DiscountFormValues["kind"], { shouldValidate: true })
-          }
+          onChange={(value) => {
+            setValue("kind", value as DiscountFormValues["kind"], { shouldValidate: true });
+            setValue("value", "", { shouldValidate: true });
+          }}
           options={[
             { value: "percent", label: t("domain.discountKind.percent") },
             { value: "fixed", label: t("domain.discountKind.fixed") },
           ]}
         />
         <Field
-          label={t("tariffs.discounts.value")}
+          label={t(kind === "percent" ? "flows.percent" : "flows.fixed")}
           hint={
             kind === "percent"
               ? t("tariffs.discounts.percentHint")

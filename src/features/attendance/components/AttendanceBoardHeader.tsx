@@ -4,7 +4,7 @@ import { SelectField } from "@/components/common/SelectField";
 import { cn, focusRing } from "@/lib/utils";
 
 /** Sarlavhadagi hisoblagichlar — bosilsa filtrga aylanadi (§5.1). */
-export type Counter = "all" | "pending" | "inside" | "absent" | "notPickedUp";
+export type Counter = "all" | "pending" | "inside" | "absent" | "notPickedUp" | "pickedUp";
 
 export type BoardView = "cards" | "quick";
 
@@ -18,7 +18,14 @@ interface AttendanceBoardHeaderProps {
   groups: { value: string; label: string }[];
   counter: Counter;
   onCounterChange: (value: Counter) => void;
-  counts: { pending: number; inside: number; absent: number; notPickedUp: number; total: number };
+  counts: {
+    pending: number;
+    inside: number;
+    absent: number;
+    notPickedUp: number;
+    pickedUp: number;
+    total: number;
+  };
   view: BoardView;
   onViewChange: (value: BoardView) => void;
 }
@@ -49,6 +56,7 @@ export function AttendanceBoardHeader({
       nol bo'lganda ishi tugaganini biladi. Shuning uchun u birinchi turadi.
     */
     { key: "pending", label: t("attendance.summary.pending"), value: counts.pending },
+    { key: "pickedUp", label: t("flows.pickedUp"), value: counts.pickedUp },
     { key: "inside", label: t("attendance.summary.inside"), value: counts.inside },
     { key: "absent", label: t("attendance.summary.absent"), value: counts.absent },
     { key: "notPickedUp", label: t("attendance.notPickedUp.short"), value: counts.notPickedUp },
@@ -69,7 +77,7 @@ export function AttendanceBoardHeader({
         triggerClassName="w-48"
       />
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {counters.map((item) => {
           /*
             Nol qiymatli hisoblagich filtr sifatida ma'nosiz: bosilsa bo'sh

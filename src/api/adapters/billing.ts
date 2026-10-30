@@ -27,10 +27,21 @@ export function normalizeBillingRun(
 ): BillingRun {
   const period = response.accountingPeriod ?? requestedPeriod;
   if (!period) throw new Error("Billing run is missing its accounting period");
-  const lines = response.charges ?? response.lines ?? response.previewData ?? [];
+  const lines = (response.charges ?? response.lines ?? response.previewData ?? []).map((line) => {
+    const preview = response.previewData?.find(
+      (item) => item.childId === line.childId && item.kind === line.kind,
+    );
+    return {
+      ...line,
+      childName: line.childName ?? preview?.childName,
+      groupName: line.groupName ?? preview?.groupName,
+      tariffName: line.tariffName ?? preview?.tariffName,
+    };
+  });
   return {
     ...response,
-    ...period,
+    year: period.year,
+    month: period.month,
     childrenCount: response.childCount ?? new Set(lines.map((line) => line.childId)).size,
     lines,
     totalTiyin: response.totalTiyin ?? addTiyin(...lines.map((line) => line.amountTiyin)),

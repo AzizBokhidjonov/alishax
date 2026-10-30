@@ -31,7 +31,7 @@ function Row({ label, value }: { label: string; value?: string | null }) {
 
 export function GuardianDetailPage({ guardianId }: { guardianId: string }) {
   const { t } = useTranslation();
-  const { can } = usePermissions();
+  const { can, canAny } = usePermissions();
   const { data: guardian, isLoading, error, refetch } = useGuardian(guardianId);
   const children = useGuardianChildren(guardianId);
   const invite = useTelegramInvite();
@@ -122,6 +122,7 @@ export function GuardianDetailPage({ guardianId }: { guardianId: string }) {
                           <TableHead>{t("common.labels.child")}</TableHead>
                           <TableHead>{t("common.labels.group")}</TableHead>
                           <TableHead>{t("common.labels.status")}</TableHead>
+                          <TableHead>{t("common.table.actions")}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -139,6 +140,20 @@ export function GuardianDetailPage({ guardianId }: { guardianId: string }) {
                             <TableCell>{child.groupName ?? "—"}</TableCell>
                             <TableCell>
                               <ChildStatusBadge status={child.status} />
+                            </TableCell>
+                            <TableCell>
+                              {can(P.childRead) &&
+                              canAny(P.debtRead, P.paymentRead, P.chargeRead) ? (
+                                <Button variant="outline" size="sm" asChild>
+                                  <Link
+                                    to="/bolalar/$id"
+                                    params={{ id: child.id }}
+                                    search={{ tab: "finance" }}
+                                  >
+                                    {t("flows.openAccount")}
+                                  </Link>
+                                </Button>
+                              ) : null}
                             </TableCell>
                           </TableRow>
                         ))}

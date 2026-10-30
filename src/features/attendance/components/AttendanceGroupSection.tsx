@@ -1,3 +1,4 @@
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { useTranslation } from "react-i18next";
 import { CheckCheck, ChevronDown } from "lucide-react";
 import type { AbsenceStatus, AttendanceRecord } from "@/api";
@@ -52,7 +53,7 @@ export function AttendanceGroupSection({
 
   return (
     <Collapsible open={open} onOpenChange={onOpenChange}>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <CollapsibleTrigger
           className={cn(
             "flex min-h-11 flex-1 items-center gap-2 rounded-xl px-2 py-2 text-left hover:bg-secondary",
@@ -79,15 +80,20 @@ export function AttendanceGroupSection({
           bolalarga tegilmaydi.
         */}
         {canManage && !complete ? (
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-11 shrink-0"
-            onClick={() => onMarkAllPresent(section.pending)}
-          >
-            <CheckCheck className="mr-1.5 h-4 w-4" />
-            {t("attendance.markAllPresent", { count: section.pending.length })}
-          </Button>
+          <ConfirmDialog
+            trigger={
+              <Button variant="outline" size="sm" className="h-11 shrink-0">
+                <CheckCheck className="mr-1.5 h-4 w-4" />
+                {t("attendance.markAllPresent", { count: section.pending.length })}
+              </Button>
+            }
+            title={t("flows.bulkTitle")}
+            description={t("flows.bulkHint", {
+              group: section.name,
+              count: section.pending.length,
+            })}
+            onConfirm={() => onMarkAllPresent(section.pending)}
+          />
         ) : null}
       </div>
 
@@ -107,7 +113,7 @@ export function AttendanceGroupSection({
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 pt-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] gap-3 pt-2">
             {section.rows.map((row) => (
               <AttendanceCard
                 key={row.id ?? row.childId}

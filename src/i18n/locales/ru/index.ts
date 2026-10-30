@@ -1,3 +1,4 @@
+import { flows } from "./flows";
 import { common } from "./common";
 import { errors } from "./errors";
 import { domain } from "./domain";
@@ -13,6 +14,7 @@ import { website } from "./website";
 import { guide } from "./guide";
 
 export const ru = {
+  flows,
   common,
   errors,
   domain,

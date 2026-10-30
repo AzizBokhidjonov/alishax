@@ -19,6 +19,8 @@ import { ChildHistoryTab } from "./components/ChildHistoryTab";
 import { ChildFinanceTab } from "./components/ChildFinanceTab";
 import { ChildAttendanceTab } from "./components/ChildAttendanceTab";
 import { ChildPickupTab } from "./components/ChildPickupTab";
+import { useUrlState } from "@/hooks/use-url-state";
+import { PaymentFormDialog } from "@/features/finance/components/PaymentFormDialog";
 import { useChild } from "./api";
 
 export function ChildDetailPage({ childId }: { childId: string }) {
@@ -31,7 +33,26 @@ export function ChildDetailPage({ childId }: { childId: string }) {
   const canSeeConsents = can(P.consentRead);
   const canSeeAttendance = can(P.attendanceRead) && scopeOf(P.attendanceRead) !== "today";
   const canSeeMedical = canAny(P.medicalRead, P.medicalAlerts);
-  const canSeeFinance = can(P.chargeRead);
+  const canSeeFinance = canAny(
+    P.chargeRead,
+    P.debtRead,
+    P.paymentRead,
+    P.paymentCreate,
+    P.tariffManage,
+  );
+  const [requestedTab, setTab] = useUrlState("child.tab", "overview");
+  const allowedTabs = [
+    "overview",
+    "documents",
+    "history",
+    ...(canSeeGuardians ? ["guardians"] : []),
+    ...(canSeeConsents ? ["consents"] : []),
+    ...(canSeeAttendance ? ["attendance"] : []),
+    ...(canSeeMedical ? ["medical"] : []),
+    ...(canSeeFinance ? ["finance"] : []),
+    ...(can(P.pickupRead) ? ["pickup"] : []),
+  ];
+  const tab = allowedTabs.includes(requestedTab) ? requestedTab : "overview";
   const canSeePickup = can(P.pickupRead);
 
   return (
@@ -55,6 +76,12 @@ export function ChildDetailPage({ childId }: { childId: string }) {
                 </span>
               }
             >
+              {can(P.paymentCreate) ? (
+                <PaymentFormDialog
+                  childId={child.id}
+                  childName={child.lastName + " " + child.firstName}
+                />
+              ) : null}
               {canManage || can(P.childStatus) ? (
                 <div className="flex gap-2">
                   {can(P.childStatus) ? <ChildStatusDialog child={child} /> : null}
@@ -73,7 +100,7 @@ export function ChildDetailPage({ childId }: { childId: string }) {
               ) : null}
             </PageHeader>
 
-            <Tabs defaultValue="overview">
+            <Tabs value={tab} onValueChange={setTab}>
               <TabsList>
                 <TabsTrigger value="overview">{t("children.tabs.overview")}</TabsTrigger>
                 {canSeeGuardians ? (
@@ -126,7 +153,10 @@ export function ChildDetailPage({ childId }: { childId: string }) {
               ) : null}
               {canSeeFinance ? (
                 <TabsContent value="finance">
-                  <ChildFinanceTab childId={child.id} />
+                  <ChildFinanceTab
+                    childId={child.id}
+                    childName={child.lastName + " " + child.firstName}
+                  />
                 </TabsContent>
               ) : null}
               {canSeeConsents ? (

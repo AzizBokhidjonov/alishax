@@ -147,6 +147,7 @@ export type PaymentMethod = "cash" | "bank" | "card" | "online" | "other";
 export interface PaymentAllocation {
   chargeId: Id;
   chargeDescription?: string;
+  chargeKind?: string;
   amountTiyin: Tiyin;
 }
 

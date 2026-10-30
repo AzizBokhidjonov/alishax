@@ -34,7 +34,7 @@ export function useCreateManualCharge() {
   return useApiMutation({
     mutationFn: (dto: CreateManualChargeDto) => chargesApi.createManual(dto),
     successMessage: t("charges.manual.created"),
-    invalidate: [["charges"], ["debts"]],
+    invalidate: [["charges"], ["charge-ledger"], ["debts"]],
   });
 }
 
@@ -43,7 +43,7 @@ export function useReverseCharge() {
   return useApiMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string }) => chargesApi.reverse(id, reason),
     successMessage: t("charges.reverse.done"),
-    invalidate: [["charges"], ["debts"]],
+    invalidate: [["charges"], ["charge-ledger"], ["debts"]],
   });
 }
 

@@ -1,3 +1,4 @@
+import { billingTraceNote, chargeLabel } from "@/lib/billing-labels";
 import { useTranslation } from "react-i18next";
 import type { BillingExplain } from "@/api";
 import { Money } from "@/components/common/Money";
@@ -18,7 +19,9 @@ export function BillingExplanationLines({ lines }: { lines: BillingExplain[] }) 
       {lines.map((line, lineIndex) => (
         <section key={line.id ?? `${line.childId}-${line.kind}-${lineIndex}`} className="space-y-2">
           <div className="text-sm font-medium">
-            {[line.childName, line.label ?? line.kind].filter(Boolean).join(" · ")}
+            {[line.childName, line.label ?? chargeLabel({ kind: line.kind }, t)]
+              .filter(Boolean)
+              .join(" · ")}
           </div>
           {line.trace?.length ? (
             <Table>
@@ -32,12 +35,20 @@ export function BillingExplanationLines({ lines }: { lines: BillingExplain[] }) 
               <TableBody>
                 {line.trace.map((step, index) => (
                   <TableRow key={`${step.step}-${index}`}>
-                    <TableCell className="font-medium">{step.step}</TableCell>
+                    <TableCell className="font-medium">
+                      {t(`flows.traceSteps.${step.step}`, {
+                        defaultValue: t("billing.explain.step"),
+                      })}
+                    </TableCell>
                     <TableCell>
-                      {step.amount != null ? <Money value={step.amount} hideCurrency /> : "—"}
+                      {step.amount != null ? (
+                        <Money value={step.amount} hideCurrency className="whitespace-nowrap" />
+                      ) : (
+                        "—"
+                      )}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {step.note ?? step.factor ?? "—"}
+                      {billingTraceNote(step.note, line.kind, t) ?? step.factor ?? "—"}
                     </TableCell>
                   </TableRow>
                 ))}

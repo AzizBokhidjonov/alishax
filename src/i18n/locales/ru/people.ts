@@ -58,7 +58,7 @@ export const children = {
   },
   status: {
     change: "Изменить статус",
-    hint: "Статус меняется отдельным действием (не PATCH) и попадает в историю.",
+    hint: "Укажите новый статус, дату начала и причину. Изменение сохранится в истории ребёнка.",
     effectiveDate: "Дата вступления в силу",
     reason: "Причина",
     changed: "Статус изменён",
@@ -121,7 +121,6 @@ export const children = {
     empty: "История пуста",
   },
 };
-
 export const guardians = {
   title: "Родители",
   subtitle: "Всего {{count}} родителей",
@@ -174,7 +173,6 @@ export const guardians = {
   },
   childrenTitle: "Связанные дети",
 };
-
 export const groups = {
   title: "Группы",
   subtitle: "Всего {{count}} групп",
@@ -229,7 +227,6 @@ export const groups = {
   },
   historyEmpty: "История группы пуста",
 };
-
 export const enroll = {
   title: "Приём нового ребёнка",
   hint: "Три шага: создать ребёнка, назначить в группу, связать родителя.",

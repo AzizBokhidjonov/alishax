@@ -85,7 +85,7 @@ export function PaymentAllocations({
           {open.map(({ charge, remaining }) => (
             <div key={charge.id} className="flex items-center gap-2">
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm">{charge.description ?? charge.id}</div>
+                <div className="truncate text-sm">{charge.description ?? t("flows.charges")}</div>
                 <div className="text-xs text-muted-foreground">
                   {t("payments.form.remaining")}: <Money value={remaining} />
                 </div>
@@ -93,6 +93,9 @@ export function PaymentAllocations({
               <Input
                 className="h-9 w-32 text-right tabular-nums"
                 inputMode="decimal"
+                aria-label={
+                  (charge.description ?? t("flows.charges")) + " — " + t("payments.form.amount")
+                }
                 value={allocations[charge.id] ?? ""}
                 onChange={(event) => onChange({ ...allocations, [charge.id]: event.target.value })}
               />

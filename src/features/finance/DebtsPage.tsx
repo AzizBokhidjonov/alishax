@@ -184,9 +184,10 @@ export function DebtsPage() {
                     <Link
                       to="/bolalar/$id"
                       params={{ id: row.childId }}
+                      search={{ tab: "finance" }}
                       className="hover:underline"
                     >
-                      {row.childName ?? row.childId}
+                      {row.childName ?? t("flows.unknownName")}
                     </Link>
                   </TableCell>
                   <TableCell>{row.groupName ?? "—"}</TableCell>

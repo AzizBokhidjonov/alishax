@@ -77,13 +77,13 @@ export function FormDialog({
         </DialogHeader>
 
         <form
-          className="contents"
+          className="flex min-h-0 flex-1 flex-col"
           onSubmit={(event) => {
             event.preventDefault();
             if (canSubmit && !pending) onSubmit();
           }}
         >
-          <fieldset disabled={pending} className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+          <fieldset disabled={pending} className="min-h-0 min-w-0 flex-1 overflow-y-auto px-6 py-5">
             {children}
           </fieldset>
 

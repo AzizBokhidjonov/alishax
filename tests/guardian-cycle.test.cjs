@@ -28,6 +28,15 @@ test("guardian enrollment rejects punctuation phones and stays busy until linkin
           reused: false,
         }),
       },
+      "src/components/common/RelationshipField.tsx": {
+        RelationshipField: ({ value, onChange }) =>
+          React.createElement(
+            "select",
+            { value, onChange: (e) => onChange(e.target.value) },
+            React.createElement("option", { value: "" }, "Choose"),
+            React.createElement("option", { value: "mother" }, "Mother"),
+          ),
+      },
       "src/components/common/EntityPicker.tsx": { GuardianPicker: () => null },
     },
   );
@@ -40,7 +49,11 @@ test("guardian enrollment rejects punctuation phones and stays busy until linkin
     const inputs = view.container.querySelectorAll("input");
     await change(inputs[0], "Parent");
     await change(inputs[1], "---");
-    await change(inputs[2], "Mother");
+    await React.act(async () => {
+      const relationship = view.container.querySelector("select");
+      relationship.value = "mother";
+      relationship.dispatchEvent(new Event("change", { bubbles: true }));
+    });
     const submit = [...view.container.querySelectorAll("button")].find(
       (b) => b.textContent === "guardians.link.add",
     );
