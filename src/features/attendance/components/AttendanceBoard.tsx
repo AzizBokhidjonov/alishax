@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import { AlertTriangle, CloudOff } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import type { AttendanceRecord } from "@/api";
 import { Button } from "@/components/ui/button";
 import { QueryState } from "@/components/common/QueryState";
@@ -11,7 +11,10 @@ import { useUrlState } from "@/hooks/use-url-state";
 import { childDisplayName, useChildLookup } from "@/features/children/use-child-lookup";
 import { useGroupOptions } from "@/features/groups/api";
 import { useCheckIn, useNotPickedUp, useSetAttendanceStatus } from "../api";
-import { usePendingCheckIns } from "../checkin-queue";
+import { PendingArrivals } from "./PendingArrivals";
+import { useCheckInQueue } from "../checkin-queue";
+import { arrivalDay } from "../checkin-storage";
+import { todayIso } from "@/lib/dates";
 import { useBoardRows } from "../use-board-rows";
 import { AttendanceBoardHeader, type Counter } from "./AttendanceBoardHeader";
 import { AttendanceGroupSection } from "./AttendanceGroupSection";
@@ -66,15 +69,21 @@ export function AttendanceBoard({ canManage }: { canManage: boolean }) {
 
   const checkIn = useCheckIn();
   const setStatus = useSetAttendanceStatus();
+  const unconfirmed = new Set(
+    useCheckInQueue()
+      .items.filter((item) => arrivalDay(item.at) === todayIso())
+      .map((item) => item.childId),
+  );
 
-  const queued = usePendingCheckIns();
-
-  const inside = rows.filter((row) => row.checkInAt && !row.checkOutAt).length;
+  const inside = rows.filter(
+    (row) => row.checkInAt && !row.checkOutAt && !unconfirmed.has(row.childId),
+  ).length;
   // «Kelmadi» — ATAYLAB sabab qo'yilganlar; belgilanmaganlar bunga kirmaydi.
   const absent = rows.filter((row) => !row.checkInAt && row.status).length;
 
   const search = term.trim().toLowerCase();
   const visible = rows.filter((row) => {
+    if (counter === "inside" && unconfirmed.has(row.childId)) return false;
     if (!matches(row, counter as Counter, lateIds)) return false;
     if (!search) return true;
     return childDisplayName(lookup, row.childId, row.childName).toLowerCase().includes(search);
@@ -105,7 +114,9 @@ export function AttendanceBoard({ canManage }: { canManage: boolean }) {
   }, [visible, t]);
 
   const markAllPresent = (pending: AttendanceRecord[]) => {
-    for (const row of pending) checkIn.mutate({ childId: row.childId });
+    for (const row of pending) {
+      if (!unconfirmed.has(row.childId)) checkIn.mutate({ childId: row.childId });
+    }
   };
 
   return (
@@ -147,15 +158,7 @@ export function AttendanceBoard({ canManage }: { canManage: boolean }) {
       ) : null}
 
       {}
-      {queued > 0 ? (
-        <div
-          aria-live="polite"
-          className="flex items-center gap-2 rounded-xl border border-st-info-border bg-st-info-soft px-4 py-2.5 text-sm font-medium text-st-info-fg"
-        >
-          <CloudOff className="h-4 w-4 shrink-0" />
-          {t("attendance.pendingQueue", { count: queued })}
-        </div>
-      ) : null}
+      <PendingArrivals />
 
       {}
       <p aria-live="polite" className="sr-only">

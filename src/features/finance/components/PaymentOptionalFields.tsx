@@ -19,12 +19,14 @@ export function PaymentOptionalFields({
   setManual,
   allocations,
   setAllocations,
+  setChargeLabels,
 }: {
   form: UseFormReturn<PaymentFormValues>;
   manual: boolean;
   setManual: (value: boolean) => void;
   allocations: AllocationMap;
   setAllocations: (value: AllocationMap) => void;
+  setChargeLabels?: (value: Record<string, string>) => void;
 }) {
   const { t } = useTranslation();
   const { can } = usePermissions();
@@ -63,6 +65,7 @@ export function PaymentOptionalFields({
                 amountSom={watch("amountSom")}
                 allocations={allocations}
                 onChange={setAllocations}
+                onLabels={setChargeLabels}
               />
             ) : (
               <p className="text-xs text-muted-foreground">{t("payments.form.allocationsHint")}</p>

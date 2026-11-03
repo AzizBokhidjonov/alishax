@@ -1,9 +1,9 @@
 import { ApiError, fallbackCode, type ErrorEnvelope } from "./error";
-import { getAccessToken, setAccessToken } from "./token-store";
+import { getAccessToken, getSessionGeneration, invalidateSession } from "./token-store";
+import { abortedSession, refreshSession } from "./session-refresh";
+import { API_BASE_URL } from "./config";
 
-/** API manzili. `.env` da `VITE_API_BASE_URL` bilan almashtiriladi. */
-export const API_BASE_URL: string =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "https://api.alishaxkids.uz/api/v1";
+export { API_BASE_URL } from "./config";
 
 export type QueryValue = string | number | boolean | undefined | null;
 export type QueryParams = Record<string, QueryValue>;
@@ -15,6 +15,8 @@ export interface RequestOptions {
   /** Moliyaviy amallar uchun `Idempotency-Key` sarlavhasi. */
   idempotencyKey?: string;
   signal?: AbortSignal;
+  /** Kirish/chiqish so'rovi yangi sessiya yaratib yubormasin. */
+  skipRefresh?: boolean;
   /** `multipart/form-data` yuborish uchun — `body` o'rniga ishlatiladi. */
   formData?: FormData;
   /** JSON emas, fayl kutilsa. */
@@ -54,7 +56,6 @@ async function rawFetch(path: string, options: RequestOptions): Promise<Response
 }
 
 /** Bir vaqtda ko'p so'rov 401 qaytarsa, yangilash faqat bir marta yuboriladi. */
-let refreshPromise: Promise<boolean> | null = null;
 let onUnauthenticated: (() => void) | null = null;
 
 /** AuthProvider sessiya tugaganini bilishi uchun. */
@@ -62,31 +63,8 @@ export function setUnauthenticatedHandler(handler: (() => void) | null): void {
   onUnauthenticated = handler;
 }
 
-export async function refreshAccessToken(): Promise<boolean> {
-  if (!refreshPromise) {
-    refreshPromise = (async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-          method: "POST",
-          credentials: "include",
-          headers: { Accept: "application/json" },
-        });
-        if (!response.ok) return false;
-        const data = (await response.json()) as { accessToken?: string };
-        if (!data.accessToken) return false;
-        setAccessToken(data.accessToken);
-        return true;
-      } catch {
-        return false;
-      } finally {
-        // Keyingi 401 uchun yangi urinish mumkin bo'lsin.
-        setTimeout(() => {
-          refreshPromise = null;
-        }, 0);
-      }
-    })();
-  }
-  return refreshPromise;
+export function refreshAccessToken(signal?: AbortSignal): Promise<boolean> {
+  return refreshSession(API_BASE_URL, signal);
 }
 
 async function toApiError(response: Response): Promise<ApiError> {
@@ -123,29 +101,42 @@ export async function requestResponse(
   path: string,
   options: RequestOptions = {},
 ): Promise<Response> {
+  const generation = getSessionGeneration();
   let response = await rawFetch(path, options);
+  if (generation !== getSessionGeneration() || options.signal?.aborted) throw abortedSession();
 
-  if (response.status === 401) {
+  if (response.status === 401 && !options.skipRefresh) {
     const error = await toApiError(response.clone());
     if (error.code === "TOKEN_EXPIRED" || error.code === "UNAUTHENTICATED") {
-      const refreshed = await refreshAccessToken();
+      const refreshed = await refreshAccessToken(options.signal);
+      if (generation !== getSessionGeneration() || options.signal?.aborted) throw abortedSession();
       if (refreshed) {
         response = await rawFetch(path, options);
       } else {
-        setAccessToken(null);
+        invalidateSession();
         onUnauthenticated?.();
         throw error;
       }
     }
   }
 
-  if (!response.ok) throw await toApiError(response);
+  if (generation !== getSessionGeneration() || options.signal?.aborted) throw abortedSession();
+  if (!response.ok) {
+    if (response.status === 401 && !options.skipRefresh) {
+      invalidateSession();
+      onUnauthenticated?.();
+    }
+    throw await toApiError(response);
+  }
   return response;
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const generation = getSessionGeneration();
   const response = await requestResponse(path, options);
-  return parse<T>(response, options.expect ?? "json");
+  const result = await parse<T>(response, options.expect ?? "json");
+  if (generation !== getSessionGeneration() || options.signal?.aborted) throw abortedSession();
+  return result;
 }
 
 export const api = {
@@ -179,15 +170,19 @@ export function fileNameFrom(response: Response): string | undefined {
  * aniqlanadi (Funksional spec, B17).
  */
 export async function requestExport(path: string, query?: QueryParams): Promise<ExportResult> {
+  const generation = getSessionGeneration();
   const response = await requestResponse(path, { query });
   const contentType = response.headers.get("content-type") ?? "";
   if (contentType.includes("application/json")) {
     const data = (await response.json()) as { jobId?: string; id?: string };
+    if (generation !== getSessionGeneration()) throw abortedSession();
     const jobId = data.jobId ?? data.id;
     if (jobId) return { kind: "job", jobId };
     return { kind: "file", blob: new Blob([JSON.stringify(data)], { type: "application/json" }) };
   }
-  return { kind: "file", blob: await response.blob(), fileName: fileNameFrom(response) };
+  const blob = await response.blob();
+  if (generation !== getSessionGeneration()) throw abortedSession();
+  return { kind: "file", blob, fileName: fileNameFrom(response) };
 }
 
 /** Blobni yangi oynada ochadi (kvitansiya, PDF ko'rish uchun). */

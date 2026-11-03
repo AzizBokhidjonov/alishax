@@ -67,7 +67,11 @@ export function LandingPage() {
       <LandingHeader anchors={anchors} />
 
       {dynamic && data ? (
-        blocks.map((block) => <PublicBlockView key={block.id} block={block} page={data} />)
+        <div lang={data.locale}>
+          {blocks.map((block) => (
+            <PublicBlockView key={block.id} block={block} page={data} />
+          ))}
+        </div>
       ) : (
         <>
           <HeroSection />

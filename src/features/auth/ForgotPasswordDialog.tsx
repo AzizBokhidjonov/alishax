@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
 import { authApi } from "@/api";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,24 +22,34 @@ export function ForgotPasswordDialog() {
   const [open, setOpen] = useState(false);
   const [login, setLogin] = useState("");
   const [pending, setPending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const busy = useRef(false);
   const showError = useErrorToast();
 
   const submit = async () => {
+    if (busy.current || !login.trim()) return;
+    busy.current = true;
     setPending(true);
     try {
       await authApi.forgotPassword(login.trim());
-      toast.success(t("auth.forgotSent"));
-      setOpen(false);
+      setSent(true);
       setLogin("");
     } catch (error) {
       showError(error);
     } finally {
+      busy.current = false;
       setPending(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (next) setSent(false);
+      }}
+    >
       <DialogTrigger asChild>
         {/*
           `link` varianti matnni `text-primary` qiladi. Ilgari ustidan
@@ -51,24 +61,33 @@ export function ForgotPasswordDialog() {
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>{t("auth.forgotTitle")}</DialogTitle>
-          <DialogDescription>{t("auth.forgotHint")}</DialogDescription>
+          <DialogDescription>{t(sent ? "auth.forgotSent" : "auth.forgotHint")}</DialogDescription>
         </DialogHeader>
-        <div className="space-y-2">
-          <Label htmlFor="forgot-login">{t("auth.loginField")}</Label>
-          <Input
-            id="forgot-login"
-            value={login}
-            onChange={(event) => setLogin(event.target.value)}
-            className="h-11"
-          />
-        </div>
+        {!sent && (
+          <div className="space-y-2">
+            <Label htmlFor="forgot-login">{t("auth.loginField")}</Label>
+            <Input
+              id="forgot-login"
+              value={login}
+              disabled={pending}
+              onChange={(event) => setLogin(event.target.value)}
+              className="h-11"
+            />
+          </div>
+        )}
         <DialogFooter>
           <Button variant="ghost" onClick={() => setOpen(false)}>
             {t("common.actions.cancel")}
           </Button>
-          <Button disabled={!login.trim() || pending} onClick={() => void submit()}>
-            {t("common.actions.send")}
-          </Button>
+          {sent ? (
+            <Button asChild>
+              <Link to="/parolni-tiklash">{t("auth.enterResetCode")}</Link>
+            </Button>
+          ) : (
+            <Button disabled={!login.trim() || pending} onClick={() => void submit()}>
+              {t("common.actions.send")}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -12,8 +12,12 @@ import { users, roles } from "./admin";
 import { settings, reports, imports, audit } from "./system";
 import { website } from "./website";
 import { guide } from "./guide";
+import { recovery } from "./recovery";
+import { landing } from "./landing";
 
 export const ru = {
+  recovery,
+  landing,
   flows,
   common,
   errors,

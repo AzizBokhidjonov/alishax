@@ -8,6 +8,7 @@ test("finance mutations invalidate cached child charges and ledger", async () =>
   const client = new QueryClient();
   const hooks = loadSource("src/features/finance/api-ledger.ts", {
     "src/api/index.ts": {},
+    "src/features/finance/payment-recovery-store.ts": {},
     "react-i18next": { useTranslation: () => ({ t: (key) => key }) },
     "src/lib/query.ts": { qk, useApiMutation: (options) => options },
   });

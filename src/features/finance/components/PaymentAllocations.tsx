@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Wand2 } from "lucide-react";
 import type { Charge } from "@/api";
@@ -21,14 +21,35 @@ export function PaymentAllocations({
   amountSom,
   allocations,
   onChange,
+  onLabels,
 }: {
   childId: string;
   amountSom: string;
   allocations: AllocationMap;
   onChange: (next: AllocationMap) => void;
+  onLabels?: (labels: Record<string, string>) => void;
 }) {
   const { t } = useTranslation();
   const charges = useChildCharges(childId);
+  useEffect(() => {
+    if (!charges.data) return;
+    onLabels?.(
+      Object.fromEntries(
+        charges.data.map((charge) => [
+          charge.id,
+          [
+            charge.description,
+            charge.period
+              ? `${charge.period.year}-${String(charge.period.month).padStart(2, "0")}`
+              : "",
+            charge.id,
+          ]
+            .filter(Boolean)
+            .join(" · "),
+        ]),
+      ),
+    );
+  }, [charges.data, onLabels]);
 
   const open = useMemo(
     () =>

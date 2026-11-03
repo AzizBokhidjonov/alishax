@@ -82,8 +82,19 @@ export const auth = {
   submitting: "Kirilmoqda...",
   forgot: "Parolni unutdingizmi?",
   forgotTitle: "Parolni tiklash",
-  forgotHint: "Login yoki telefon raqamingizni kiriting — tiklash havolasi yuboriladi.",
-  forgotSent: "Agar bunday hisob mavjud bo'lsa, tiklash havolasi yuborildi.",
+  forgotHint:
+    "Login yoki telefon raqamingizni kiriting. Hisobga Telegram ulangan bo'lsa, tiklash kodi o'sha yerga yuboriladi.",
+  forgotSent:
+    "Agar mos hisob va ulangan Telegram mavjud bo'lsa, tiklash kodi yuborildi. Telegramni tekshiring. Kod kelmasa, bog'cha administratoriga murojaat qiling.",
+  enterResetCode: "Tiklash kodini kiritish",
+  resetHint:
+    "Telegramdan olingan kodni kiriting. Kod 1 soat amal qiladi. Kod kelmasa yoki muddati tugagan bo'lsa, yangi kod so'rang yoki administratorga murojaat qiling.",
+  sessionChecking: "Sessiya tekshirilmoqda",
+  sessionWaitHint:
+    "Tekshiruv 10 soniyagacha davom etadi. Kirish sahifasiga o'tib uni bekor qilishingiz mumkin.",
+  sessionCheckFailed: "Sessiyani tekshirib bo'lmadi",
+  sessionCheckHint: "Ulanishni tekshiring va qayta urinib ko'ring yoki hisobingizga qayta kiring.",
+  goToLogin: "Kirish sahifasiga o'tish",
   resetTitle: "Yangi parol",
   resetToken: "Tiklash kodi",
   newPassword: "Yangi parol",

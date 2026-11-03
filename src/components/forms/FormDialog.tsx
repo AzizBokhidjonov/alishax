@@ -136,6 +136,7 @@ export function Field({
   children: ReactNode;
 }) {
   const generatedId = useId();
+  const labelId = `${generatedId}-label`;
   const control = isValidElement(children)
     ? (children as ReactElement<Record<string, unknown>>)
     : null;
@@ -152,7 +153,7 @@ export function Field({
 
   return (
     <div className={cn("space-y-1.5", className)}>
-      <Label htmlFor={controlId}>
+      <Label id={labelId} htmlFor={controlId}>
         {label}
         {required ? (
           <span aria-hidden className="ml-0.5 text-st-danger-fg">
@@ -163,6 +164,7 @@ export function Field({
       {control
         ? cloneElement(control, {
             ...(callerOwnsId ? {} : { id: controlId }),
+            "aria-labelledby": control.props["aria-labelledby"] ?? labelId,
             "aria-invalid": error ? true : control.props["aria-invalid"],
             "aria-describedby": describedBy ?? control.props["aria-describedby"],
           })

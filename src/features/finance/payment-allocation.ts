@@ -2,6 +2,7 @@ import { toBigInt, toTiyin } from "@/lib/money";
 
 export function validPaymentAllocation(amountSom: string, allocations: Record<string, string>) {
   const amounts = Object.values(allocations).filter((value) => value.trim() !== "");
+  if (amounts.length === 0) return false;
   if (
     amounts.some(
       (value) => !/^\d+([.,]\d{1,2})?$/.test(value.trim()) || toBigInt(toTiyin(value)) <= 0n,

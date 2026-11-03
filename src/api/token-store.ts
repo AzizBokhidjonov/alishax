@@ -4,9 +4,17 @@
  */
 
 let accessToken: string | null = null;
+let sessionGeneration = 0;
 const listeners = new Set<(token: string | null) => void>();
 
 export const getAccessToken = (): string | null => accessToken;
+export const getSessionGeneration = (): number => sessionGeneration;
+
+/** Eski sessiyadagi kechikkan javoblar yangi hisobga ta'sir qilmasin. */
+export function invalidateSession(): void {
+  sessionGeneration += 1;
+  setAccessToken(null);
+}
 
 export function setAccessToken(token: string | null): void {
   accessToken = token;

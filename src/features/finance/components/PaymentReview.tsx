@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import type { PaymentFormValues } from "@/components/forms/schemas";
 import { Money } from "@/components/common/Money";
-import { toTiyin } from "@/lib/money";
+import { addTiyin, subtractTiyin, toTiyin } from "@/lib/money";
 import { formatDateTime, localInputToIso } from "@/lib/dates";
 
 export function PaymentReview({
@@ -9,11 +9,15 @@ export function PaymentReview({
   childName,
   payerName,
   manual,
+  allocations = [],
+  chargeLabels = {},
 }: {
   values: PaymentFormValues;
   childName: string;
   payerName: string;
   manual: boolean;
+  allocations?: { chargeId: string; amountTiyin: string }[];
+  chargeLabels?: Record<string, string>;
 }) {
   const { t } = useTranslation();
   const rows = [
@@ -40,6 +44,41 @@ export function PaymentReview({
       <p className="rounded-xl bg-secondary p-3 text-sm">
         {t(manual ? "payments.form.allocationsManual" : "flows.allocationHint")}
       </p>
+      {manual ? (
+        <dl aria-label={t("recovery.allocationReview")} className="space-y-2">
+          {allocations.map((item) => (
+            <div
+              key={item.chargeId}
+              className="flex flex-wrap justify-between gap-2 border-b border-border pb-2"
+            >
+              <dt className="min-w-0 break-words">
+                {chargeLabels[item.chargeId] ||
+                  t("recovery.chargeReference", { id: item.chargeId })}
+              </dt>
+              <dd>
+                <Money value={item.amountTiyin} />
+              </dd>
+            </div>
+          ))}
+          <div className="flex justify-between gap-2">
+            <dt>{t("payments.form.allocated")}</dt>
+            <dd>
+              <Money value={addTiyin(...allocations.map((item) => item.amountTiyin))} />
+            </dd>
+          </div>
+          <div className="flex justify-between gap-2">
+            <dt>{t("payments.form.toAdvance")}</dt>
+            <dd>
+              <Money
+                value={subtractTiyin(
+                  toTiyin(values.amountSom),
+                  addTiyin(...allocations.map((item) => item.amountTiyin)),
+                )}
+              />
+            </dd>
+          </div>
+        </dl>
+      ) : null}
       {values.note ? <p className="break-words text-sm">{values.note}</p> : null}
     </section>
   );

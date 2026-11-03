@@ -40,7 +40,12 @@ export function PickupPage() {
   */
   const canReadAttendance = can(P.attendanceRead);
   const inside = useInside(canReadAttendance);
-  const isInside = !canReadAttendance || (inside.data ?? []).some((row) => row.childId === childId);
+  const presenceLoading =
+    canReadAttendance && (inside.isLoading || inside.isFetching || !inside.data);
+  const presenceError = canReadAttendance && Boolean(inside.error);
+  const isInside =
+    !canReadAttendance ||
+    (!presenceLoading && !presenceError && inside.data?.some((row) => row.childId === childId));
 
   const flow = usePickupCheckOut(childId, { childName, enabled: Boolean(childId) });
 
@@ -83,7 +88,7 @@ export function PickupPage() {
 
         <Card
           className={
-            !childId || !flow.recipient || flow.verify.isLoading || flow.verifyError
+            !childId || !flow.recipient || flow.verify.isFetching || flow.verifyError
               ? undefined
               : flow.allowed
                 ? "border-st-ok-border bg-st-ok-soft"
@@ -95,8 +100,9 @@ export function PickupPage() {
               childId={childId}
               recipient={flow.recipient}
               data={flow.verdict}
-              isLoading={flow.verify.isLoading}
+              isLoading={flow.verify.isLoading || flow.verify.isFetching}
               error={flow.verifyError}
+              onRetry={() => void flow.verify.refetch()}
             />
 
             {/*
@@ -109,6 +115,7 @@ export function PickupPage() {
                 <div className="w-full space-y-3 pt-2">
                   <Textarea
                     rows={2}
+                    aria-label={t("attendance.noteOptional")}
                     placeholder={t("attendance.noteOptional")}
                     value={flow.note}
                     onChange={(event) => flow.setNote(event.target.value)}
@@ -122,6 +129,21 @@ export function PickupPage() {
                     {t("attendance.checkOut")}
                   </Button>
                 </div>
+              ) : presenceError ? (
+                <div role="status" className="space-y-2 text-sm text-st-warn-fg">
+                  <p>{t("pickup.verify.presenceUnavailable")}</p>
+                  <Button
+                    variant="outline"
+                    disabled={inside.isFetching}
+                    onClick={() => void inside.refetch()}
+                  >
+                    {t("common.actions.retry")}
+                  </Button>
+                </div>
+              ) : presenceLoading ? (
+                <p role="status" className="text-sm">
+                  {t("pickup.verify.presenceLoading")}
+                </p>
               ) : (
                 <p className="text-sm font-medium text-st-warn-fg">
                   {t("pickup.verify.notInside")}

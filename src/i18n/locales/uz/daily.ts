@@ -1,4 +1,22 @@
 export const attendance = {
+  recovery: {
+    unconfirmed: "Kirish hali tasdiqlanmagan — yuqoridagi ro'yxatni tekshiring",
+    title: "Tasdiq kutilayotgan kirishlar ({{count}})",
+    hint: "Bu qaydlar hali serverda tasdiqlanmagan. Asl kirish vaqti shu qurilmada akkauntingiz uchun saqlanadi; boshqa akkauntdan yuborilmaydi.",
+    storageUnavailable:
+      "Qurilmada saqlash ishlamayapti. Qaydlar tasdiqlanmaguncha sahifani yopmang; zarur bo'lsa asl vaqtni mas'ul xodimga yetkazing.",
+    pending: "Tasdiq kutilmoqda — qayta yuborish asl kirish vaqtini saqlaydi.",
+    review:
+      "Avtomatik yuborish to'xtadi. Serverdagi yozuvni tekshiring; kerak bo'lsa vakolatli xodim bilan tuzating.",
+    previousDay:
+      "Bu avvalgi kunning qaydi. Bugungi kirish sifatida yuborilmaydi. Jurnaldagi asl kunni tekshiring va vakolatli xodim bilan tuzating.",
+    checkServer: "Serverdagi yozuvni tekshirish",
+    reviewed: "Tekshirib bo'ldim",
+    removeTitle: "Kutilayotgan qaydni ro'yxatdan olib tashlash?",
+    removeHint:
+      "Faqat serverdagi davomatni tekshirib, kerakli tuzatishni bajarganingizdan keyin davom eting. Bu amal server yozuvini yaratmaydi yoki o'chirmaydi.",
+    remove: "Ro'yxatdan olib tashlash",
+  },
   noChildren: "Bu guruhda bola yo'q",
   noChildrenHint:
     "Davomat bolalar ro'yxatidan quriladi. Avval «Bolalar» bo'limida bolani shu guruhga biriktiring.",
@@ -106,6 +124,10 @@ export const pickup = {
   title: "Olib ketish nazorati",
   selectChild: "Avval bolani tanlang",
   verify: {
+    presenceLoading: "Bolaning ichkarida ekanligi tekshirilmoqda…",
+    presenceUnavailable:
+      "Bolaning hozir ichkarida ekanligini tekshirib bo'lmadi. Bu bola yo'qligini anglatmaydi. Qayta urinib ko'ring.",
+    retry: "Ruxsatni qayta tekshirish",
     notInside: "Bola hozir ichkarida emas — avval kirishi qayd etilishi kerak.",
     unknown: "Tekshirib bo'lmadi",
     deniedFallback: "Bu odamga bolani berish mumkin emas.",

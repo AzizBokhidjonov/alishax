@@ -54,14 +54,21 @@ test("typed dates respect the same bounds as calendar selection", async () => {
   }
 });
 
-test("enrollment clears canceled child details and assignment state on every new opening", async () => {
+test("enrollment retains a dismissed draft and clears only after explicit confirmation of closing saved setup", async () => {
+  const originalConfirm = window.confirm;
+  const confirmations = [];
+  let allowClose = false;
+  window.confirm = (message) => {
+    confirmations.push(message);
+    return allowClose;
+  };
   const created = [];
   let resets = 0;
   const { ChildEnrollmentWizard } = loadSource(
     "src/features/children/components/ChildEnrollmentWizard.tsx",
     {
       "react-i18next": translations,
-      "@tanstack/react-router": { useNavigate: () => () => {} },
+      "@tanstack/react-router": { useNavigate: () => () => {}, useRouter: () => null },
       sonner: { toast: { success() {} } },
       "src/api/index.ts": { fieldErrors: () => ({}) },
       "src/features/settings/api.ts": {
@@ -126,17 +133,21 @@ test("enrollment clears canceled child details and assignment state on every new
     await change(view.container.querySelector("[name=firstName]"), "First");
     await change(view.container.querySelector("[name=lastName]"), "Child");
     await change(view.container.querySelector("[name=birthDate]"), "2021-01-01");
+    await click("#toggle");
+    assert.equal(view.container.querySelector("[name=firstName]").value, "First");
     const next = [...view.container.querySelectorAll("button")].find((b) =>
       b.textContent.includes("flows.createContinue"),
     );
     await React.act(async () => next.click());
     assert.equal(created.length, 1);
+    allowClose = true;
     await click("#toggle");
     await click("#toggle");
     assert.equal(view.container.querySelector("[name=firstName]").value, "");
     assert.equal(view.container.querySelector("[name=lastName]").value, "");
     assert.equal(view.container.querySelector("[name=birthDate]").value, "");
     assert.equal(resets, 2);
+    assert.deepEqual(confirmations, ["recovery.discard", "recovery.closeEnrollment"]);
     assert.equal(
       [...view.container.querySelectorAll("button")].find((b) =>
         b.textContent.includes("flows.createContinue"),
@@ -145,12 +156,15 @@ test("enrollment clears canceled child details and assignment state on every new
     );
   } finally {
     await view.close();
+    window.confirm = originalConfirm;
   }
 });
 
 test("the entity form submits once while pending and remains open after a field rejection", async () => {
   const { useEntityForm } = loadSource("src/hooks/use-entity-form.ts", {
     "src/api/index.ts": { fieldErrors: () => ({ name: "common.validation.invalidValue" }) },
+    "react-i18next": translations,
+    "@tanstack/react-router": { useRouter: () => null },
   });
   const { z } = require("zod");
   let current,

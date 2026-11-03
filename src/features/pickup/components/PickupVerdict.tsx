@@ -16,6 +16,7 @@ interface PickupVerdictProps {
   data?: PickupVerifyResult;
   isLoading: boolean;
   error: unknown;
+  onRetry?: () => void;
 }
 
 /**
@@ -28,7 +29,14 @@ interface PickupVerdictProps {
  *     «RUXSAT YO'Q» deb chizilardi va qabulxona serverni tekshirmagan holni
  *     rasmiy taqiq deb o'qishi mumkin edi.
  */
-export function PickupVerdict({ childId, recipient, data, isLoading, error }: PickupVerdictProps) {
+export function PickupVerdict({
+  childId,
+  recipient,
+  data,
+  isLoading,
+  error,
+  onRetry,
+}: PickupVerdictProps) {
   const { t } = useTranslation();
   /*
     Vasiylar ikki holda kerak: rad etilganda — qo'ng'iroq qilish uchun,
@@ -70,6 +78,11 @@ export function PickupVerdict({ childId, recipient, data, isLoading, error }: Pi
         <AlertCircle className="h-12 w-12 text-st-warn-fg" />
         <div className="text-lg font-bold text-st-warn-fg">{t("pickup.verify.unknown")}</div>
         <div className="text-sm text-st-warn-fg">{errorMessage(t, error)}</div>
+        {onRetry ? (
+          <Button variant="outline" onClick={onRetry}>
+            {t("pickup.verify.retry")}
+          </Button>
+        ) : null}
         {callButton}
       </>
     );

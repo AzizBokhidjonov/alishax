@@ -1,15 +1,17 @@
+import { useTranslation } from "react-i18next";
 import { Globe, Instagram, Phone, Send } from "lucide-react";
 import { cn, focusRing } from "@/lib/utils";
 import { INSTAGRAM, MYLINK, PHONE_HREF, TELEGRAM } from "../constants";
 
 const ITEMS = [
-  { href: TELEGRAM, icon: Send, label: "Telegram" },
-  { href: INSTAGRAM, icon: Instagram, label: "Instagram" },
-  { href: PHONE_HREF, icon: Phone, label: "Telefon" },
-  { href: MYLINK, icon: Globe, label: "Barcha linklar" },
+  { href: TELEGRAM, icon: Send, label: "landing.telegram" },
+  { href: INSTAGRAM, icon: Instagram, label: "landing.instagram" },
+  { href: PHONE_HREF, icon: Phone, label: "landing.phone" },
+  { href: MYLINK, icon: Globe, label: "landing.allLinks" },
 ];
 
 export function Socials({ compact }: { compact?: boolean }) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center gap-2">
       {ITEMS.map(({ href, icon: Icon, label }) => (
@@ -18,8 +20,8 @@ export function Socials({ compact }: { compact?: boolean }) {
           href={href}
           target="_blank"
           rel="noreferrer"
-          aria-label={label}
-          title={label}
+          aria-label={t(label)}
+          title={t(label)}
           className={cn(
             "grid place-items-center rounded-full border border-border bg-card text-foreground shadow-sm transition-all duration-300",
             focusRing,

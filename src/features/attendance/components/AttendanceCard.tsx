@@ -16,6 +16,8 @@ import { cn, focusRing } from "@/lib/utils";
 import { CheckOutDialog } from "./CheckOutDialog";
 import { usePermissions } from "@/auth/auth-context";
 import { P } from "@/config/permissions";
+import { useCheckInQueue } from "../checkin-queue";
+import { arrivalDay } from "../checkin-storage";
 
 const ABSENCE: AbsenceStatus[] = ["absent", "sick", "vacation", "excused"];
 
@@ -51,7 +53,10 @@ export function AttendanceCard({
   const { t } = useTranslation();
   const { can } = usePermissions();
 
-  const inside = Boolean(row.checkInAt && !row.checkOutAt);
+  const unconfirmed = useCheckInQueue().items.some(
+    (item) => item.childId === row.childId && arrivalDay(item.at) === row.date,
+  );
+  const inside = Boolean(row.checkInAt && !row.checkOutAt && !unconfirmed);
   const hasAlert = Boolean(row.alerts && row.alerts.length > 0);
 
   return (
@@ -80,7 +85,11 @@ export function AttendanceCard({
 
       <div className="min-w-0">
         <div className="break-words text-base font-bold">{name}</div>
-        {row.checkInAt ? (
+        {unconfirmed ? (
+          <p role="status" className="text-sm font-medium text-st-warn-fg">
+            {t("attendance.recovery.unconfirmed")}
+          </p>
+        ) : row.checkInAt ? (
           <div className="text-sm text-muted-foreground">
             {t("attendance.columns.checkIn")} {formatTime(row.checkInAt)}
             {row.checkOutAt ? ` · ${formatTime(row.checkOutAt)}` : ""}
@@ -109,8 +118,8 @@ export function AttendanceCard({
 
       {canManage ? (
         <div className="mt-auto flex items-center gap-1 pt-1">
-          {!row.checkInAt && can(P.attendanceCheckIn) ? (
-            // Bir teginish, oyna yo'q, vaqt tanlagich yo'q — vaqtni server qo'yadi.
+          {!unconfirmed && !row.checkInAt && can(P.attendanceCheckIn) ? (
+            // Bir teginish — asl vaqt qayta yuborishda ham saqlanadi.
             <Button
               className="h-auto min-h-11 min-w-0 flex-1 whitespace-normal text-sm"
               onClick={() => onCheckIn(row.childId)}
@@ -128,7 +137,7 @@ export function AttendanceCard({
             />
           ) : null}
 
-          {!row.checkInAt && can(P.attendanceCheckIn) ? (
+          {!unconfirmed && !row.checkInAt && can(P.attendanceCheckIn) ? (
             <DropdownMenu>
               <DropdownMenuTrigger
                 aria-label={t("flows.absence") + " — " + name}

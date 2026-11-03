@@ -1,16 +1,18 @@
+import { useTranslation } from "react-i18next";
 import { SCHEDULE } from "../constants";
 import { Reveal } from "./Reveal";
 
 export function ScheduleSection() {
+  const { t } = useTranslation();
   return (
     <section id="kun-tartibi" className="bg-card py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <Reveal className="mx-auto max-w-2xl text-center">
           <span className="text-sm font-bold uppercase tracking-widest text-berry-ink">
-            Kun tartibi
+            {t("landing.schedule")}
           </span>
           <h2 className="mt-3 text-3xl font-extrabold tracking-tight md:text-4xl">
-            Bir kun bog'chada
+            {t("landing.scheduleTitle")}
           </h2>
         </Reveal>
 
@@ -24,7 +26,7 @@ export function ScheduleSection() {
                     <span className="rounded-full bg-brand/20 px-3 py-1 text-sm font-bold text-brand-foreground">
                       {item.time}
                     </span>
-                    <span className="font-medium">{item.title}</span>
+                    <span className="font-medium">{t(item.title)}</span>
                   </div>
                 </div>
               </Reveal>

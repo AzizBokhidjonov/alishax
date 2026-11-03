@@ -10,6 +10,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { ZodType, ZodTypeDef } from "zod";
 import { fieldErrors } from "@/api";
+import { useDraftProtection } from "./use-draft-protection";
 
 export interface EntityFormOptions<T extends FieldValues> {
   /** Validatsiya sxemasi (server qoidalarini takrorlaydi). */
@@ -18,6 +19,8 @@ export interface EntityFormOptions<T extends FieldValues> {
   defaults: T | (() => T);
   /** Berilsa — tahrirlash rejimi; forma shu yozuv bilan to'ldiriladi. */
   entity?: Partial<T> | null;
+  /** Barqaror xotiraga yozilgan tiklash nusxasi bo'lsa qayta ogohlantirish kerak emas. */
+  protectDraft?: boolean;
   /**
    * Saqlash. Promise qaytarsa forma kutadi; xato bo'lsa oyna yopilmaydi va
    * `422` dagi `details` maydon xatolariga aylantiriladi.
@@ -48,12 +51,14 @@ export function useEntityForm<T extends FieldValues>({
   schema,
   defaults,
   entity,
+  protectDraft = true,
   onSubmit,
 }: EntityFormOptions<T>): EntityForm<T> {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const isEditing = !!entity;
   const submitting = useRef(false);
+  const baseline = useRef("");
 
   const form = useForm<T>({
     // Form controls may contain raw strings; the schema guarantees parsed output T.
@@ -61,6 +66,13 @@ export function useEntityForm<T extends FieldValues>({
     defaultValues: resolveDefaults(defaults) as DefaultValues<T>,
     mode: "onChange",
   });
+  const values = form.watch();
+  const confirmClose = useDraftProtection(
+    open,
+    protectDraft && JSON.stringify(values) !== baseline.current,
+    "recovery.discard",
+    pending,
+  );
 
   // Eng so'nggi qiymatlar ref'da: tiklash effekti faqat `open` o'zgarganda
   // ishlaydi — forma ochiq turganda tashqi yangilanish kiritilgan matnni
@@ -75,6 +87,7 @@ export function useEntityForm<T extends FieldValues>({
     const current = latest.current;
     const base = resolveDefaults(current.defaults);
     form.reset({ ...base, ...(current.entity ?? {}) } as DefaultValues<T>);
+    baseline.current = JSON.stringify(form.getValues());
     if (current.entity) void form.trigger();
   }, [open, form]);
 
@@ -109,7 +122,7 @@ export function useEntityForm<T extends FieldValues>({
   return {
     open,
     setOpen: (next) => {
-      if (!submitting.current) setOpen(next);
+      if (!submitting.current && (next || confirmClose())) setOpen(next);
     },
     form,
     submit,

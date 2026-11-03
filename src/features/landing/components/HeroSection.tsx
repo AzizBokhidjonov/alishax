@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { ArrowRight, Phone, Sparkles, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ export function Wave({ className }: { className?: string }) {
 }
 
 export function HeroSection() {
+  const { t } = useTranslation();
   return (
     <section id="top" className="relative overflow-hidden">
       <div className="absolute inset-0 -z-20 bg-[radial-gradient(1100px_520px_at_80%_-10%,var(--brand-soft),transparent)]" />
@@ -33,19 +35,18 @@ export function HeroSection() {
       <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-12 md:px-6 md:py-20 lg:grid-cols-2">
         <div className="animate-[pop-in_0.7s_ease-out_both]">
           <span className="inline-flex items-center gap-2 rounded-full bg-brand/20 px-4 py-1.5 text-sm font-bold text-brand-foreground">
-            <Sparkles className="h-4 w-4 animate-[wiggle_2.5s_ease-in-out_infinite]" /> 1,5 yoshdan
-            7 yoshgacha qabul
+            <Sparkles className="h-4 w-4 animate-[wiggle_2.5s_ease-in-out_infinite]" />{" "}
+            {t("landing.admission")}
           </span>
-          <h1 className="mt-5 text-4xl font-extrabold leading-[1.05] tracking-tight md:text-6xl">
-            Farzandingiz{" "}
+          <h1 className="mt-5 break-words text-4xl font-extrabold leading-[1.05] tracking-tight md:text-6xl">
+            {t("landing.heroStart")}{" "}
             <span className="animate-[shine_6s_linear_infinite] bg-[linear-gradient(90deg,var(--brand),var(--berry),var(--sky),var(--brand))] bg-[length:200%_auto] bg-clip-text text-transparent">
-              gullab-yashnaydigan
+              {t("landing.heroHighlight")}
             </span>{" "}
-            joy
+            {t("landing.heroEnd")}
           </h1>
           <p className="mt-5 max-w-xl text-base text-muted-foreground md:text-lg">
-            Alishax Kids — mehribon tarbiyachilar, xavfsiz hovli, kuniga 5 mahal ovqat va har kuni
-            yangi kashfiyot. Davomat, to'lovlar va olib ketish nazorati esa raqamli tizimda.
+            {t("landing.heroText")}
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
@@ -55,7 +56,7 @@ export function HeroSection() {
               className="rounded-full bg-brand text-brand-foreground shadow-md transition-all hover:-translate-y-1 hover:bg-brand/90 hover:shadow-xl"
             >
               <a href="#aloqa">
-                Tashrif buyurish <ArrowRight className="ml-2 h-4 w-4" />
+                {t("landing.visit")} <ArrowRight className="ml-2 h-4 w-4" />
               </a>
             </Button>
             <Button
@@ -84,7 +85,7 @@ export function HeroSection() {
                   uchun to'q varianti, 5:1 dan yuqori.
                 */}
                 <div className="text-2xl font-extrabold text-brand-ink">{stat.value}</div>
-                <div className="mt-1 text-xs text-muted-foreground">{stat.label}</div>
+                <div className="mt-1 text-xs text-muted-foreground">{t(stat.label)}</div>
               </div>
             ))}
           </div>
@@ -96,7 +97,7 @@ export function HeroSection() {
             src={heroImg}
             width={1024}
             height={1024}
-            alt="Bog'chada rangli kubiklar bilan o'ynayotgan quvnoq bola"
+            alt={t("landing.heroAlt")}
             className="aspect-square w-full rounded-[2.5rem] object-cover shadow-xl transition-transform duration-500 hover:scale-[1.02]"
           />
           <div className="absolute -bottom-5 -left-2 animate-[float_6s_ease-in-out_infinite] rounded-2xl border border-border bg-card px-4 py-3 shadow-lg sm:left-6">
@@ -108,7 +109,7 @@ export function HeroSection() {
               </div>
               <span className="text-sm font-semibold">4.9 / 5</span>
             </div>
-            <div className="mt-0.5 text-xs text-muted-foreground">180+ ota-ona bahosi</div>
+            <div className="mt-0.5 text-xs text-muted-foreground">{t("landing.rating")}</div>
           </div>
         </div>
       </div>
@@ -121,7 +122,7 @@ export function HeroSection() {
               className="flex items-center gap-3 text-sm font-extrabold uppercase tracking-wide"
             >
               <Sparkles className="h-4 w-4" />
-              {item}
+              {t(item)}
             </span>
           ))}
         </div>

@@ -5,6 +5,8 @@ import { AuthAvatar } from "@/components/common/AuthImage";
 import { formatTime } from "@/lib/dates";
 import { cn, focusRing } from "@/lib/utils";
 import { CheckOutDialog } from "./CheckOutDialog";
+import { useCheckInQueue } from "../checkin-queue";
+import { arrivalDay } from "../checkin-storage";
 
 /** Bir teginishda qo'yiladigan holatlar. `present` — bu kirish qaydi. */
 const MARKS = ["present", "absent", "sick", "vacation", "excused"] as const;
@@ -48,16 +50,21 @@ export function QuickMarkRow({
 }: QuickMarkRowProps) {
   const { t } = useTranslation();
 
-  const inside = Boolean(row.checkInAt && !row.checkOutAt);
+  const unconfirmed = useCheckInQueue().items.some(
+    (item) => item.childId === row.childId && arrivalDay(item.at) === row.date,
+  );
+  const inside = Boolean(row.checkInAt && !row.checkOutAt && !unconfirmed);
   const done = Boolean(row.checkOutAt);
   const hasAlert = Boolean(row.alerts && row.alerts.length > 0);
 
   /** Hozirgi belgi: kirish qaydi bo'lsa — «keldi», aks holda qo'yilgan sabab. */
-  const active: Mark | undefined = row.checkInAt
-    ? "present"
-    : MARKS.includes(row.status as Mark)
-      ? (row.status as Mark)
-      : undefined;
+  const active: Mark | undefined = unconfirmed
+    ? undefined
+    : row.checkInAt
+      ? "present"
+      : MARKS.includes(row.status as Mark)
+        ? (row.status as Mark)
+        : undefined;
 
   const mark = (value: Mark) => {
     if (value === "present") onCheckIn(row.childId);
@@ -90,7 +97,11 @@ export function QuickMarkRow({
             {alert.instruction ? ` — ${alert.instruction}` : ""}
           </div>
         ))}
-        {row.checkInAt ? (
+        {unconfirmed ? (
+          <p role="status" className="text-sm font-medium text-st-warn-fg">
+            {t("attendance.recovery.unconfirmed")}
+          </p>
+        ) : row.checkInAt ? (
           <div className="text-xs text-muted-foreground">
             {formatTime(row.checkInAt)}
             {row.checkOutAt ? ` → ${formatTime(row.checkOutAt)}` : ""}
@@ -110,7 +121,7 @@ export function QuickMarkRow({
               Chiqib bo'lgan bolaning qaydini bu yerdan o'zgartirib bo'lmaydi:
               tugatilgan kun tuzatish orqali, sabab bilan tahrirlanadi (§5.1).
             */
-            const disabled = done || (value === "present" && Boolean(row.checkInAt));
+            const disabled = unconfirmed || done || (value === "present" && Boolean(row.checkInAt));
             return (
               <button
                 key={value}

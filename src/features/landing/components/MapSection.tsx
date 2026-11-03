@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { cn, focusRing } from "@/lib/utils";
 import { MapPin } from "lucide-react";
 import { MAP_EMBED, YANDEX } from "../constants";
@@ -5,6 +6,7 @@ import { Reveal } from "./Reveal";
 import { Socials } from "./Socials";
 
 export function MapSection() {
+  const { t } = useTranslation();
   return (
     <section className="py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
@@ -13,14 +15,12 @@ export function MapSection() {
             <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_1.4fr]">
               <div className="p-6 md:p-8">
                 <span className="text-sm font-bold uppercase tracking-widest text-berry-ink">
-                  Manzil
+                  {t("landing.address")}
                 </span>
                 <h2 className="mt-3 text-3xl font-extrabold tracking-tight md:text-4xl">
-                  Bizni xaritada toping
+                  {t("landing.mapTitle")}
                 </h2>
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Alishax Kids bog'chasi, Toshkent shahri.
-                </p>
+                <p className="mt-3 text-sm text-muted-foreground">{t("landing.mapText")}</p>
                 <a
                   href={YANDEX}
                   target="_blank"
@@ -30,7 +30,7 @@ export function MapSection() {
                     focusRing,
                   )}
                 >
-                  <MapPin className="h-4 w-4" /> Yandex xaritada ochish
+                  <MapPin className="h-4 w-4" /> {t("landing.openMap")}
                 </a>
                 <div className="mt-6">
                   <Socials />
@@ -38,7 +38,7 @@ export function MapSection() {
               </div>
               <iframe
                 src={MAP_EMBED}
-                title="Alishax Kids joylashuvi Yandex xaritada"
+                title={t("landing.mapAlt")}
                 loading="lazy"
                 className="h-[320px] w-full border-0 lg:h-full"
                 allowFullScreen

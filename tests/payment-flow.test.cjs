@@ -1,6 +1,7 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { React, mount, change } = require("./dom.cjs");
+require("./payment-locks.cjs");
 const { loadSource, apiHarness } = require("./load-source.cjs");
 
 test("billing periods use named months even without browser Uzbek locale support", () => {
@@ -75,6 +76,7 @@ test("manual allocations reject malformed, negative and excessive amounts exactl
   assert.equal(valid("100", { a: "-1" }), false);
   assert.equal(valid("100", { a: "1foo" }), false);
   assert.equal(valid("100", { a: "0" }), false);
+  assert.equal(valid("100", {}), false);
   assert.equal(valid("90071992547409.93", { a: "90071992547409.92", b: "0.01" }), true);
   assert.equal(valid("90071992547409.93", { a: "90071992547409.92", b: "0.02" }), false);
 });
@@ -105,14 +107,20 @@ test("discounts and tariff assignments reject an end date before their start", (
 
 test("payment requires review, preserves exact amount and retries with the same key", async () => {
   let dialog,
-    rejectPayment = true,
-    resets = 0;
+    rejectPayment = true;
+  window.localStorage.clear();
+  const recovery = loadSource("src/features/finance/payment-recovery-store.ts", {
+    "src/api/http.ts": { API_BASE_URL: "fixture-payment" },
+  });
+  recovery.setPaymentRecoveryScope("test-user", true);
   const calls = [];
   const translations = { useTranslation: () => ({ t: (key) => key, i18n: { language: "uz" } }) };
   const { PaymentFormDialog } = loadSource(
     "src/features/finance/components/PaymentFormDialog.tsx",
     {
       "react-i18next": translations,
+      "src/features/finance/payment-recovery-store.ts": recovery,
+      "@tanstack/react-router": { useRouter: () => null },
       "src/auth/auth-context.ts": { usePermissions: () => ({ can: () => false }) },
       "src/api/index.ts": { fieldErrors: () => ({ amountSom: "common.validation.invalidAmount" }) },
       "src/features/finance/api.ts": {
@@ -122,9 +130,6 @@ test("payment requires review, preserves exact amount and retries with the same 
             if (rejectPayment) throw new Error("fixture rejection");
           },
         }),
-      },
-      "src/lib/idempotency.ts": {
-        useIdempotencyKey: () => ({ get: () => "stable-key", reset: () => resets++ }),
       },
       "src/features/finance/use-closed-period.ts": { useClosedPeriod: () => ({ closed: false }) },
       "src/features/finance/components/ClosedPeriodNotice.tsx": { ClosedPeriodNotice: () => null },
@@ -171,16 +176,20 @@ test("payment requires review, preserves exact amount and retries with the same 
     assert.equal(calls.length, 1);
     assert.equal(calls[0].dto.amountTiyin, "12345");
     assert.equal(dialog.open, true);
-    assert.equal(dialog.submitLabel, "flows.review");
-    assert.equal(resets, 0);
-    await change(view.container.querySelector("input"), "123.45");
-    await React.act(async () => dialog.onSubmit());
+    assert.equal(dialog.submitLabel, "recovery.retryPayment");
+    assert.equal(view.container.querySelector("input"), null);
+    assert.equal(window.localStorage.length, 1);
+    await React.act(async () => dialog.onOpenChange(false));
+    assert.equal(dialog.open, false);
+    await React.act(async () => dialog.onOpenChange(true));
+    assert.equal(dialog.submitLabel, "recovery.retryPayment");
     rejectPayment = false;
     await React.act(async () => dialog.onSubmit());
     assert.equal(calls.length, 2);
     assert.equal(calls[1].idempotencyKey, calls[0].idempotencyKey);
+    assert.deepEqual(calls[1].dto, calls[0].dto);
     assert.equal(dialog.open, false);
-    assert.equal(resets, 1);
+    assert.equal(window.localStorage.length, 0);
   } finally {
     await view.close();
   }

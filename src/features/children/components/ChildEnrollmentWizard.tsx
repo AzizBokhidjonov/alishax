@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -18,6 +18,7 @@ import { Badge } from "@/components/common/StatusBadge";
 import { Stepper } from "@/components/common/Stepper";
 import { childSchema, type ChildFormValues } from "@/components/forms/schemas";
 import { useEntityForm } from "@/hooks/use-entity-form";
+import { useDraftProtection } from "@/hooks/use-draft-protection";
 import { useFieldError } from "@/hooks/use-field-error";
 import { isCalendarDate, todayIso } from "@/lib/dates";
 import { useBranchOptions } from "@/features/settings/api";
@@ -40,6 +41,7 @@ export function ChildEnrollmentWizard({ trigger }: { trigger: ReactNode }) {
   const assign = useAssignChildToGroup();
 
   const [open, setOpen] = useState(false);
+  const baseline = useRef("");
   const [guardianBusy, setGuardianBusy] = useState(false);
   const [step, setStep] = useState<Step>("child");
   const [child, setChild] = useState<{ id: string; name: string } | null>(null);
@@ -64,6 +66,18 @@ export function ChildEnrollmentWizard({ trigger }: { trigger: ReactNode }) {
   });
 
   const error = useFieldError(form.form.formState.errors);
+  const confirmClose = useDraftProtection(
+    open,
+    !!child || JSON.stringify(form.form.getValues()) !== baseline.current,
+    child ? "recovery.closeEnrollment" : "recovery.discard",
+    form.pending || assign.isPending || guardianBusy,
+  );
+  const changeOpen = (next: boolean) => {
+    if (form.pending || assign.isPending || guardianBusy) return;
+    if (!next && !confirmClose()) return;
+    if (next) reset();
+    setOpen(next);
+  };
 
   const reset = () => {
     form.form.reset({
@@ -74,6 +88,7 @@ export function ChildEnrollmentWizard({ trigger }: { trigger: ReactNode }) {
       enrollmentDate: todayIso(),
     });
     assign.reset();
+    baseline.current = JSON.stringify(form.form.getValues());
     setStep("child");
     setChild(null);
     setGroupId("");
@@ -95,20 +110,13 @@ export function ChildEnrollmentWizard({ trigger }: { trigger: ReactNode }) {
     setOpen(false);
     reset();
     toast.success(t("enroll.done"));
-    if (id) void navigate({ to: "/bolalar/$id", params: { id } });
+    if (id) void navigate({ to: "/bolalar/$id", params: { id }, ignoreBlocker: true });
   };
 
   const steps = STEP_ORDER.map((key) => ({ key, label: t(`enroll.steps.${key}`) }));
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(next) => {
-        if (form.pending || assign.isPending || guardianBusy) return;
-        if (next) reset();
-        setOpen(next);
-      }}
-    >
+    <Dialog open={open} onOpenChange={changeOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="flex max-h-[92vh] max-w-2xl flex-col gap-0 p-0">
         <DialogHeader className="shrink-0 space-y-4 border-b border-border px-6 py-5">
@@ -170,7 +178,7 @@ export function ChildEnrollmentWizard({ trigger }: { trigger: ReactNode }) {
         <div className="flex shrink-0 flex-col-reverse gap-2 border-t border-border bg-secondary/30 px-6 py-4 sm:flex-row sm:items-center sm:justify-end">
           {step === "child" ? (
             <>
-              <Button variant="ghost" disabled={form.pending} onClick={() => setOpen(false)}>
+              <Button variant="ghost" disabled={form.pending} onClick={() => changeOpen(false)}>
                 {t("common.actions.cancel")}
               </Button>
               <Button onClick={form.submit} disabled={!form.canSubmit} className="min-w-32">

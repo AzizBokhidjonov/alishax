@@ -32,6 +32,8 @@ export interface DatePickerProps {
   className?: string;
   "aria-invalid"?: boolean;
   "aria-describedby"?: string;
+  "aria-label"?: string;
+  "aria-labelledby"?: string;
 }
 
 export function DatePicker({
@@ -45,6 +47,8 @@ export function DatePicker({
   className,
   "aria-invalid": ariaInvalid,
   "aria-describedby": ariaDescribedBy,
+  "aria-label": ariaLabel,
+  "aria-labelledby": ariaLabelledBy,
 }: DatePickerProps) {
   const { t } = useTranslation();
   const { language } = useLanguage();
@@ -85,9 +89,13 @@ export function DatePicker({
         disabled={disabled}
         placeholder={t("common.labels.datePlaceholder")}
         value={text}
+        aria-label={ariaLabel}
+        aria-labelledby={ariaLabelledBy}
         aria-invalid={ariaInvalid || invalid}
         aria-describedby={
-          invalid ? [ariaDescribedBy, localErrorId].filter(Boolean).join(" ") : ariaDescribedBy
+          showLocalError
+            ? [ariaDescribedBy, localErrorId].filter(Boolean).join(" ")
+            : ariaDescribedBy
         }
         onChange={(event) => {
           editing.current = true;

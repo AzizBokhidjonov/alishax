@@ -58,7 +58,17 @@ export function usePickupCheckOut(childId: string, options: Options = {}) {
 
   const verdict: PickupVerifyResult | undefined = rejectedAtConfirm
     ? { allowed: false, reason: rejectedAtConfirm }
-    : verify.data;
+    : verify.error || verify.isFetching
+      ? undefined
+      : verify.data;
+  const allowed = Boolean(
+    childId &&
+    recipient &&
+    (options.enabled ?? true) &&
+    !verify.error &&
+    !verify.isFetching &&
+    verdict?.allowed === true,
+  );
 
   const selectRecipient = (next: PickupRecipient | null) => {
     setRecipient(next);
@@ -72,7 +82,7 @@ export function usePickupCheckOut(childId: string, options: Options = {}) {
   };
 
   const submit = () => {
-    if (!recipient || verdict?.allowed !== true || verify.isFetching || checkOut.isPending) return;
+    if (!recipient || !allowed || checkOut.isPending) return;
     checkOut.mutate(
       {
         childId,
@@ -114,7 +124,7 @@ export function usePickupCheckOut(childId: string, options: Options = {}) {
     setNote,
     verify,
     verdict,
-    allowed: verdict?.allowed === true,
+    allowed,
     /** Tekshiruvning o'zi bajarilmadi — bu rad etish EMAS. */
     verifyError: rejectedAtConfirm ? undefined : verify.error,
     pending: checkOut.isPending,

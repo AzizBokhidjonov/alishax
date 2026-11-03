@@ -17,6 +17,7 @@ import { reportError } from "../lib/error-reporting";
 import { isPublicRoute } from "@/config/navigation";
 import { useAuth } from "@/auth/auth-context";
 import { AuthProvider } from "@/auth/AuthProvider";
+import { SessionCheck } from "@/auth/SessionCheck";
 import { AppShell } from "@/components/layout/AppShell";
 import { RouteGuard } from "@/components/layout/RouteGuard";
 import { Toaster } from "@/components/ui/sonner";
@@ -164,7 +165,6 @@ function RootComponent() {
  * qolganlari `AppShell` ichida va route ruxsati tekshirilgan holda.
  */
 function LayoutGate() {
-  const { t } = useTranslation();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { status } = useAuth();
   const navigate = useNavigate();
@@ -172,21 +172,14 @@ function LayoutGate() {
 
   useEffect(() => {
     if (status === "anonymous" && !isPublic) {
-      navigate({ to: "/kirish", replace: true });
+      navigate({ to: "/kirish", replace: true, ignoreBlocker: true });
     }
   }, [status, isPublic, navigate]);
 
   if (isPublic) return <Outlet />;
 
   if (status !== "authenticated") {
-    return (
-      // Matn halqaning yonida turadi: «kamroq harakat» yoqilganda animatsiya
-      // to'xtaydi va halqa qimirlamaydi — holatni faqat matn bildiradi.
-      <div role="status" className="flex min-h-screen flex-col items-center justify-center gap-3">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-border border-t-brand" />
-        <p className="text-sm text-muted-foreground">{t("common.state.loading")}</p>
-      </div>
-    );
+    return <SessionCheck />;
   }
 
   return (

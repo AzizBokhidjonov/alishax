@@ -81,14 +81,16 @@ export function CheckOutDialog({ childId, childName, className }: CheckOutDialog
               childId={childId}
               recipient={flow.recipient}
               data={flow.verdict}
-              isLoading={flow.verify.isLoading}
+              isLoading={flow.verify.isLoading || flow.verify.isFetching}
               error={flow.verifyError}
+              onRetry={() => void flow.verify.refetch()}
             />
 
             {/* Izoh faqat ruxsat bo'lganda kerak — rad etilganda u chalg'itadi. */}
             {flow.allowed ? (
               <Textarea
                 rows={2}
+                aria-label={t("attendance.noteOptional")}
                 className="w-full"
                 placeholder={t("attendance.noteOptional")}
                 value={flow.note}

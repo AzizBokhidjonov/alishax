@@ -135,7 +135,7 @@ export function ChildrenPage() {
             <Button variant="outline" onClick={params.reset}>
               {t("common.filters.clear")}
             </Button>
-          ) : canEdit ? (
+          ) : canCreate ? (
             <ChildEnrollmentWizard
               trigger={
                 <Button className="h-11 rounded-xl">

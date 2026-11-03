@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { LogIn, Menu, X } from "lucide-react";
@@ -7,6 +8,7 @@ import logo from "@/assets/logo-alishax.png";
 import { NAV_ANCHORS, type NavAnchor } from "../constants";
 import { useActiveSection, useScrolled } from "../hooks";
 import { Socials } from "./Socials";
+import { useLanguage } from "@/i18n/useLanguage";
 
 /**
  * Yuqori menyu.
@@ -15,7 +17,18 @@ import { Socials } from "./Socials";
  * bo'limlar ro'yxati ham o'shalardan hosil bo'ladi. Zaxira (statik) rejimda
  * esa eski ro'yxat ishlatiladi.
  */
-export function LandingHeader({ anchors = NAV_ANCHORS }: { anchors?: NavAnchor[] }) {
+export function LandingHeader({ anchors: providedAnchors }: { anchors?: NavAnchor[] }) {
+  const { t } = useTranslation();
+  const { language, setLanguage } = useLanguage();
+  const anchors = useMemo(
+    () =>
+      providedAnchors ??
+      NAV_ANCHORS.map((anchor) => ({
+        ...anchor,
+        label: t(anchor.label),
+      })),
+    [providedAnchors, t],
+  );
   const [open, setOpen] = useState(false);
   const scrolled = useScrolled();
   const hrefs = useMemo(() => anchors.map((anchor) => anchor.href), [anchors]);
@@ -29,11 +42,11 @@ export function LandingHeader({ anchors = NAV_ANCHORS }: { anchors?: NavAnchor[]
       )}
     >
       <div className="mx-auto max-w-7xl px-4 md:px-6">
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-3 lg:flex lg:justify-between">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-3 xl:flex xl:justify-between">
           <a href="#top" className={cn("flex min-w-0 items-center gap-2 rounded-sm", focusRing)}>
             <img
               src={logo}
-              alt="Alishax Kids logotipi"
+              alt={t("landing.logoAlt")}
               width={160}
               height={80}
               className={cn("w-auto transition-all duration-300", scrolled ? "h-9" : "h-11")}
@@ -42,7 +55,7 @@ export function LandingHeader({ anchors = NAV_ANCHORS }: { anchors?: NavAnchor[]
 
           <nav
             className={cn(
-              "hidden items-center gap-1 rounded-full border p-1 transition-all duration-300 lg:flex",
+              "hidden items-center gap-1 rounded-full border p-1 transition-all duration-300 xl:flex",
               scrolled
                 ? "border-border bg-secondary/60 backdrop-blur"
                 : "border-transparent bg-card/50 backdrop-blur",
@@ -87,6 +100,22 @@ export function LandingHeader({ anchors = NAV_ANCHORS }: { anchors?: NavAnchor[]
           </nav>
 
           <div className="flex shrink-0 items-center gap-2">
+            <select
+              aria-label={t("landing.language")}
+              value={language}
+              onChange={(event) => setLanguage(event.target.value === "ru" ? "ru" : "uz")}
+              className={cn(
+                "h-10 max-w-24 rounded-lg border border-border bg-card px-2 text-sm",
+                focusRing,
+              )}
+            >
+              <option value="uz" lang="uz">
+                O'zbekcha
+              </option>
+              <option value="ru" lang="ru">
+                Русский
+              </option>
+            </select>
             <div className="hidden md:block">
               <Socials compact />
             </div>
@@ -96,15 +125,15 @@ export function LandingHeader({ anchors = NAV_ANCHORS }: { anchors?: NavAnchor[]
             >
               <Link to="/kirish">
                 <LogIn className="mr-2 h-4 w-4" />
-                Tizimga kirish
+                {t("landing.login")}
               </Link>
             </Button>
             <button
               onClick={() => setOpen((value) => !value)}
-              aria-label="Menyu"
+              aria-label={t("landing.menu")}
               aria-expanded={open}
               className={cn(
-                "grid h-10 w-10 place-items-center rounded-xl hover:bg-secondary lg:hidden",
+                "grid h-10 w-10 place-items-center rounded-xl hover:bg-secondary xl:hidden",
                 focusRing,
               )}
             >
@@ -115,7 +144,7 @@ export function LandingHeader({ anchors = NAV_ANCHORS }: { anchors?: NavAnchor[]
       </div>
 
       {open ? (
-        <div className="animate-[pop-in_0.3s_ease-out] border-t border-border bg-card px-4 py-3 lg:hidden">
+        <div className="animate-[pop-in_0.3s_ease-out] border-t border-border bg-card px-4 py-3 xl:hidden">
           {anchors.map((anchor, index) => (
             <a
               key={anchor.href}
@@ -146,7 +175,7 @@ export function LandingHeader({ anchors = NAV_ANCHORS }: { anchors?: NavAnchor[]
             asChild
             className="mt-1 w-full rounded-full bg-brand text-brand-foreground hover:bg-brand/90"
           >
-            <Link to="/kirish">Tizimga kirish</Link>
+            <Link to="/kirish">{t("landing.login")}</Link>
           </Button>
         </div>
       ) : null}

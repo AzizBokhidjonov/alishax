@@ -4,7 +4,7 @@ import { authApi } from "@/api";
 import { qk } from "@/lib/query";
 import type { AuthUser, MeResponse, PermissionMap, RoleRef, Scope } from "@/api";
 
-export type AuthStatus = "loading" | "authenticated" | "anonymous";
+export type AuthStatus = "loading" | "authenticated" | "anonymous" | "error";
 
 export interface AuthContextValue {
   status: AuthStatus;
@@ -17,6 +17,8 @@ export interface AuthContextValue {
   logout: () => Promise<void>;
   /** Rol/ruxsat o'zgargandan keyin `/auth/me` ni qayta o'qiydi. */
   refreshMe: () => Promise<void>;
+  retrySession: () => Promise<void>;
+  cancelSession: () => void;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);

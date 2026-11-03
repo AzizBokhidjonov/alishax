@@ -6,10 +6,10 @@ import {
   paymentsApi,
   type CreateAdjustmentDto,
   type CreateManualChargeDto,
-  type CreatePaymentDto,
 } from "@/api";
 import type { ChargeListParams, DebtListParams, PaymentListParams } from "@/api/endpoints/finance";
 import { qk, useApiMutation } from "@/lib/query";
+import { paymentAttemptPayload, type PaymentAttempt } from "./payment-recovery-store";
 
 /* ---------------------------------------------------------------- hisoblar */
 
@@ -117,8 +117,10 @@ export function usePayment(id: string) {
 export function useCreatePayment() {
   const { t } = useTranslation();
   return useApiMutation({
-    mutationFn: ({ dto, idempotencyKey }: { dto: CreatePaymentDto; idempotencyKey: string }) =>
-      paymentsApi.create(dto, idempotencyKey),
+    mutationFn: (attempt: PaymentAttempt) => {
+      const { dto, idempotencyKey } = paymentAttemptPayload(attempt);
+      return paymentsApi.create(dto, idempotencyKey);
+    },
     successMessage: t("payments.form.created"),
     invalidate: [["payments"], ["charges"], ["debts"]],
   });

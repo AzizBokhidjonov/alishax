@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { todayIso } from "@/lib/dates";
@@ -27,6 +28,8 @@ export function TimeInput({
   className,
   "aria-invalid": ariaInvalid,
   "aria-describedby": ariaDescribedBy,
+  "aria-label": ariaLabel,
+  "aria-labelledby": ariaLabelledBy,
 }: {
   value?: string;
   onChange: (value: string) => void;
@@ -35,7 +38,10 @@ export function TimeInput({
   className?: string;
   "aria-invalid"?: boolean;
   "aria-describedby"?: string;
+  "aria-label"?: string;
+  "aria-labelledby"?: string;
 }) {
+  const { t } = useTranslation();
   const [text, setText] = useState(value ?? "");
   const editing = useRef(false);
 
@@ -54,6 +60,8 @@ export function TimeInput({
       value={text}
       aria-invalid={ariaInvalid}
       aria-describedby={ariaDescribedBy}
+      aria-label={ariaLabel ?? (ariaLabelledBy ? undefined : t("common.labels.time"))}
+      aria-labelledby={ariaLabelledBy}
       className={cn("tabular-nums", className)}
       onChange={(event) => {
         editing.current = true;
@@ -69,7 +77,7 @@ export function TimeInput({
           setText(clamped);
           onChange(clamped);
         } else {
-          // Tugallanmagan matn saqlanmaydi — oxirgi to'g'ri qiymatga qaytadi.
+          // Xato qiymat tuzatish uchun saqlanadi; forma xatosi ikkala maydonga bog'lanadi.
           setText(text);
         }
       }}
@@ -89,14 +97,24 @@ export function DateTimePicker({
   className,
   "aria-invalid": ariaInvalid,
   "aria-describedby": ariaDescribedBy,
+  "aria-label": ariaLabel,
+  "aria-labelledby": ariaLabelledBy,
 }: DatePickerProps) {
+  const { t } = useTranslation();
+  const labels = useId();
   const datePart = value?.slice(0, 10) ?? "";
   const timePart = value?.slice(11, 16) ?? "";
 
   const join = (date: string, time: string) => (date ? `${date}T${time}` : "");
 
   return (
-    <div className={cn("flex gap-2", className)}>
+    <div className={cn("flex min-w-0 gap-2", className)}>
+      <span id={`${labels}-date`} className="sr-only">
+        {ariaLabel} {t("common.labels.date")}
+      </span>
+      <span id={`${labels}-time`} className="sr-only">
+        {ariaLabel} {t("common.labels.time")}
+      </span>
       <DatePicker
         id={id}
         value={datePart}
@@ -105,11 +123,16 @@ export function DateTimePicker({
         min={min?.slice(0, 10)}
         max={max?.slice(0, 10)}
         clearable={clearable}
-        className="flex-1"
+        className="min-w-0 flex-1"
+        aria-labelledby={[ariaLabelledBy, `${labels}-date`].filter(Boolean).join(" ")}
         aria-invalid={ariaInvalid}
         aria-describedby={ariaDescribedBy}
       />
       <TimeInput
+        id={id ? `${id}-time` : undefined}
+        aria-labelledby={[ariaLabelledBy, `${labels}-time`].filter(Boolean).join(" ")}
+        aria-invalid={ariaInvalid}
+        aria-describedby={ariaDescribedBy}
         value={timePart}
         onChange={(next) => onChange(join(datePart || todayIso(), next))}
         disabled={disabled}
